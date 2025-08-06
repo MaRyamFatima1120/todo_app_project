@@ -72,6 +72,7 @@ git clone https://github.com/your-username/todo_app.git
 cd todo_app
 flutter pub get
 flutter run
+ ```
 
 ## 🤝 Contributing
 If you'd like to suggest improvements or report issues, feel free to open an issue or pull request.
