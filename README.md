@@ -6,12 +6,10 @@ A new Flutter project.
 
 This project is a starting point for a Flutter application.
 
-<p>
-  Check out the demo of my To‑Do Mobile App:
-  <a href="https://drive.google.com/file/d/1Y-1aV8hgSWdLDteCzKEx_piENsfjHoG2/view?usp=sharing" target="_blank">
-     Watch the To‑Do App demo video
-  </a>
-</p>
+<a href="https://drive.google.com/file/d/1Y-1aV8hgSWdLDteCzKEx_piENsfjHoG2/view?usp=sharing" target="_blank">
+  📽️ Watch To-Do App Demo
+</a>
+
 
 Todo APP Images
 <img width="959" alt="image" src="https://github.com/user-attachments/assets/5a542361-7e09-44fd-8535-c3f896f19bdd" />
