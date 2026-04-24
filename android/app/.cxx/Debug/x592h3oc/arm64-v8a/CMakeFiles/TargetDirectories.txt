@@ -1,0 +1,2 @@
+E:/Maryam/todo_app_project-main/todo_app_project-main/android/app/.cxx/Debug/x592h3oc/arm64-v8a/CMakeFiles/edit_cache.dir
+E:/Maryam/todo_app_project-main/todo_app_project-main/android/app/.cxx/Debug/x592h3oc/arm64-v8a/CMakeFiles/rebuild_cache.dir
