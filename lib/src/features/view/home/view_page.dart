@@ -19,6 +19,7 @@ class _ViewPageState extends State<ViewPage> {
 
   // Retrieve arguments passed from previous screen
 
+  late dynamic taskId;
   late int index;
   late String title;
   late String description;
@@ -28,10 +29,20 @@ class _ViewPageState extends State<ViewPage> {
   @override
   void initState() {
     super.initState();
-    index = Get.arguments['index'];
-    title = controller.addData[index]['title'];
-    description = controller.addData[index]['description'];
-    time = DateTime.parse(controller.addData[index]['timeStamp']).toIso8601String();
+    taskId = Get.arguments['taskId'];
+    // Find the current index of this task in the main data list
+    index = controller.addData.indexWhere((task) => task['id'].toString() == taskId.toString());
+    
+    if (index != -1) {
+      title = controller.addData[index]['title'];
+      description = controller.addData[index]['description'];
+      time = controller.addData[index]['timeStamp'];
+    } else {
+      // Fallback if task not found
+      title = "Task Not Found";
+      description = "";
+      time = DateTime.now().toIso8601String();
+    }
     backgroundColor = Get.arguments['backgroundColor'] ?? Colors.white;
   }
 

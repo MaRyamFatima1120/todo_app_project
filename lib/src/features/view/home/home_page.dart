@@ -25,6 +25,14 @@ class _HomepageState extends State<Homepage> {
   final FocusNode _focusNode = FocusNode();
 
   @override
+  void dispose() {
+    titleController.dispose();
+    descriptionController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
@@ -129,7 +137,6 @@ class _HomepageState extends State<Homepage> {
                             shape:
                                 WidgetStateProperty.all(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
-                              // Border color
                             )),
                             hintText: "Search...",
                             hintStyle: WidgetStateProperty.all(
@@ -141,8 +148,8 @@ class _HomepageState extends State<Homepage> {
                             textStyle: WidgetStateProperty.all(
                                 textTheme(context).bodySmall),
                           ),
-                          SizedBox(
-                            height: Get.height * 0.06,
+                          const SizedBox(
+                            height: 48, // Get.height * 0.06 approx
                           ),
                         ],
                       ),
@@ -237,7 +244,7 @@ class _HomepageState extends State<Homepage> {
                                                 onTap: () {
                                                   Get.toNamed("/viewPage",
                                                       arguments: {
-                                                        'index': index,
+                                                        'taskId': item['id'],
                                                         'backgroundColor':
                                                             controller
                                                                 .getGradient(
@@ -271,8 +278,8 @@ class _HomepageState extends State<Homepage> {
                                                               .start,
                                                       children: [
                                                         Container(
-                                                          height: 30,
-                                                          width: 30,
+                                                          height: 36,
+                                                          width: 36,
                                                           decoration:
                                                               const BoxDecoration(
                                                                   color: Colors
@@ -280,6 +287,8 @@ class _HomepageState extends State<Homepage> {
                                                                   shape: BoxShape
                                                                       .circle),
                                                           child: IconButton(
+                                                            padding: EdgeInsets.zero,
+                                                            constraints: const BoxConstraints(),
                                                             onPressed: () {
                                                               controller
                                                                   .toggleTaskCompletion(
@@ -292,7 +301,7 @@ class _HomepageState extends State<Homepage> {
                                                                         .check_circle
                                                                     : Icons
                                                                         .circle_outlined,
-                                                                size: 15,
+                                                                size: 22,
                                                                 color: controller
                                                                     .getIconColor(
                                                                         index)),
@@ -357,8 +366,8 @@ class _HomepageState extends State<Homepage> {
                                                                   Get.toNamed(
                                                                       "/viewPage",
                                                                       arguments: {
-                                                                        'index':
-                                                                            index,
+                                                                        'taskId':
+                                                                            item['id'],
                                                                         'backgroundColor': controller
                                                                             .getGradient(index)
                                                                             .colors
@@ -389,7 +398,7 @@ class _HomepageState extends State<Homepage> {
                             ),
                             Obx(() {
                               var pendingTasks = controller
-                                  .applyFilterType('pending')
+                                  .getTasksByFilter('pending')
                                   .where((item) =>
                                       item['title'].toLowerCase().contains(
                                           controller.searchQuery.value) ||
@@ -425,7 +434,7 @@ class _HomepageState extends State<Homepage> {
                                               onTap: () {
                                                 Get.toNamed("/viewPage",
                                                     arguments: {
-                                                      'index': index,
+                                                      'taskId': item['id'],
                                                       'backgroundColor':
                                                           controller
                                                               .getGradient(
@@ -474,6 +483,20 @@ class _HomepageState extends State<Homepage> {
                                                     ),
                                                 overflow: TextOverflow.ellipsis,
                                                 maxLines: 2,
+                                              ),
+                                              trailing: IconButton(
+                                                onPressed: () {
+                                                  controller
+                                                      .toggleTaskCompletion(
+                                                          item['id']);
+                                                },
+                                                icon: Icon(
+                                                  item['completed'] == true
+                                                      ? Icons.check_circle
+                                                      : Icons.circle_outlined,
+                                                  color: controller
+                                                      .getIconColor(index),
+                                                ),
                                               ),
                                             );
                                           },

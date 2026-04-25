@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,6 +21,12 @@ class _TaskViewState extends State<TaskView> {
   final HomeController controller = Get.put(HomeController());
   ProfilePageController profileController = Get.put(ProfilePageController());
   final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -70,17 +77,37 @@ class _TaskViewState extends State<TaskView> {
                             SizedBox(
                               width: Get.width * 0.6,
                             ),
-                            Obx(()=>CircleAvatar(
-                              radius: 25,
-                              backgroundColor:controller.getIconColor(2),
-                              backgroundImage:profileController.firstImageUrl.value== null? null:FileImage(File(profileController.firstImageUrl.value!)),
-                              child: profileController.firstImageUrl.value == null?Text(
-                                profileController.userName.value.isNotEmpty? profileController.userName.value[0].toUpperCase():'',
-                                style: textTheme(context).titleMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontSize: 20
-                                ),
-                              ):null,),
+                            Obx(
+                              () => CircleAvatar(
+                                radius: 25,
+                                backgroundColor:
+                                    profileController.avatarUrl.value.isEmpty
+                                        ? controller.getIconColor(2)
+                                        : Colors.white,
+                                backgroundImage: profileController
+                                        .avatarUrl.value.isNotEmpty
+                                    ? CachedNetworkImageProvider(
+                                        profileController.avatarUrl.value)
+                                    : (profileController.firstImageUrl.value !=
+                                            null
+                                        ? FileImage(File(profileController
+                                            .firstImageUrl.value!))
+                                        : null),
+                                child: profileController.avatarUrl.value.isEmpty &&
+                                        profileController.firstImageUrl.value ==
+                                            null
+                                    ? Text(
+                                        profileController.userName.value.isNotEmpty
+                                            ? profileController.userName.value[0]
+                                                .toUpperCase()
+                                            : '',
+                                        style: textTheme(context)
+                                            .titleMedium
+                                            ?.copyWith(
+                                                color: Colors.white, fontSize: 20),
+                                      )
+                                    : null,
+                              ),
                             ),
                           ],
                         ),
@@ -213,9 +240,20 @@ class _TaskViewState extends State<TaskView> {
                               overflow: TextOverflow.ellipsis,
                               maxLines: 2,
                             ),
+                            trailing: IconButton(
+                              onPressed: () {
+                                controller.toggleTaskCompletion(item['id']);
+                              },
+                              icon: Icon(
+                                item['completed'] == true
+                                    ? Icons.check_circle
+                                    : Icons.circle_outlined,
+                                color: controller.getIconColor(index),
+                              ),
+                            ),
                             onTap: () {
                               Get.toNamed("/viewPage", arguments: {
-                                'index': index,
+                                'taskId': item['id'],
                                 'backgroundColor':
                                 controller.getGradient(index).colors.first,
                               });

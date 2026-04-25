@@ -11,9 +11,13 @@ class SupabaseService {
   // Get all tasks
   Future<List<Map<String, dynamic>>> getTasks() async {
     try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return [];
+
       final response = await _supabase
           .from(_tableName)
-          .select()
+          .select('id, title, description, "timeStamp", completed, user_id')
+          .eq('user_id', user.id)
           .order('created_at', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {

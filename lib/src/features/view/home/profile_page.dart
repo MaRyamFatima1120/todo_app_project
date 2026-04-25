@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,15 +41,25 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: Get.width,
                     height: Get.height * 0.35,
                     decoration: BoxDecoration(
-                      gradient: Get.find<HomeController>().getGradient(2),
-                      image: profileController.coverUrl.value.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(
-                                  profileController.coverUrl.value),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                      gradient: homeController.getGradient(2),
                     ),
+                    child: profileController.coverUrl.value.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: profileController.coverUrl.value,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const SizedBox.shrink(),
+                            errorWidget: (context, url, error) => Container(
+                              decoration: BoxDecoration(
+                                gradient: homeController.getGradient(2),
+                              ),
+                            ),
+                          )
+                        : (profileController.secondImageUrl.value != null
+                            ? Image.file(
+                                File(profileController.secondImageUrl.value!),
+                                fit: BoxFit.cover,
+                              )
+                            : null),
                   ),
                 ),
                 Positioned(
@@ -82,14 +93,19 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
                         radius: 60,
-                        backgroundColor: homeController.getIconColor(2),
+                        backgroundColor: profileController.avatarUrl.value.isEmpty
+                            ? homeController.getIconColor(2)
+                            : Colors.white,
                         backgroundImage: profileController
-                                    .firstImageUrl.value ==
-                                null
-                            ? null
-                            : FileImage(
-                                File(profileController.firstImageUrl.value!)),
-                        child: profileController.firstImageUrl.value == null
+                                .avatarUrl.value.isNotEmpty
+                            ? CachedNetworkImageProvider(
+                                profileController.avatarUrl.value)
+                            : (profileController.firstImageUrl.value != null
+                                ? FileImage(File(
+                                    profileController.firstImageUrl.value!))
+                                : null),
+                        child: profileController.avatarUrl.value.isEmpty &&
+                                profileController.firstImageUrl.value == null
                             ? Text(
                                 profileController.userName.value.isNotEmpty
                                     ? profileController.userName.value[0]
@@ -173,7 +189,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       size: 20,
                     ),
                     onTap: () {
-                      final userController = TextEditingController();
+                      final userController = TextEditingController(text: profileController.userName.value);
                       Get.defaultDialog(
                         barrierDismissible: false,
                         title: "Change Account Name",

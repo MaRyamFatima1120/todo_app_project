@@ -54,7 +54,9 @@ class HomeController extends GetxController {
 
   Future<void> saveData() async {
     if (title.value.isNotEmpty && description.value.isNotEmpty) {
+      final user = _supabaseService.currentUser;
       final newTask = {
+        'user_id': user?.id,
         'title': title.value,
         'description': description.value,
         'timeStamp': DateTime.now().toIso8601String(),
@@ -82,21 +84,39 @@ class HomeController extends GetxController {
   }
 
 //Completed Task
-  void toggleTaskCompletion(String taskId) async {
-    //Find the task by id
-    var task = addData.firstWhere((task) => task['id'].toString() == taskId.toString());
-    bool newStatus = !(task['completed'] ?? false);
-    
-    // Update Supabase
-    await _supabaseService.updateTask(taskId.toString(), {'completed': newStatus});
-    
-    task['completed'] = newStatus;
-    update();
-    debugPrint("Updated Task Status: ${task['completed']}");
-    addData.refresh(); // Refresh UI after status change
-    // Reapply filters to reflect the updated task status in taskSearchData
-    taskSearchData.value = getFilteredTasks();
-    await updateSharedPreference();
+  void toggleTaskCompletion(dynamic taskId) async {
+    try {
+      // Find the task by id
+      var taskIndex = addData.indexWhere((task) => task['id'].toString() == taskId.toString());
+      if (taskIndex == -1) return;
+
+      var task = addData[taskIndex];
+      bool newStatus = !(task['completed'] ?? false);
+      
+      // 1. Update UI Immediately (Local)
+      task['completed'] = newStatus;
+      addData.refresh();
+      onChangedFunction(searchQuery.value);
+      taskSearchData.value = getFilteredTasks();
+      update();
+
+      // 2. Update Supabase
+      await _supabaseService.updateTask(taskId.toString(), {'completed': newStatus});
+      
+      // 3. Update Local Storage
+      await updateSharedPreference();
+      
+      debugPrint("Successfully toggled task: $taskId to $newStatus");
+    } catch (e) {
+      debugPrint("Error toggling task: $e");
+      Get.snackbar(
+        "Database Error",
+        "Failed to update task. Please check your connection or SQL setup.",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.withValues(alpha: 0.8),
+        colorText: Colors.white,
+      );
+    }
   }
 
   //Retrieve Data
@@ -178,42 +198,37 @@ class HomeController extends GetxController {
     await prefs.setString('data', jsonData);
   }
 
-//FilterTask
-  List<Map<String, dynamic>> applyFilterType(String type) {
-    // Update the filter type
-    filteredTask.value = type;
-    taskSearchData.value = getFilteredTasks();
-    // Return the filtered list based on the filter type
-    return taskSearchData;
-  }
-
-  // Get filtered tasks based on the selected filter
-  List<Map<String, dynamic>> getFilteredTasks() {
-    switch (filteredTask.value) {
+  // Get filtered tasks based on a specific filter type
+  List<Map<String, dynamic>> getTasksByFilter(String type) {
+    switch (type) {
       case 'recent':
         return addData.where((task) {
           try {
             final taskDate = DateTime.parse(task['timeStamp']);
-            debugPrint('Task Date: $taskDate');
-            final isRecent = taskDate
-                .isAfter(DateTime.now().subtract(const Duration(minutes: 30)));
-            debugPrint('Is Recent: $isRecent');
-            return isRecent;
+            return taskDate.isAfter(DateTime.now().subtract(const Duration(minutes: 30)));
           } catch (e) {
-            debugPrint('Error parsing date: $e');
-            return false; // Return false if there's an error parsing the date
+            return false;
           }
         }).toList();
-
       case 'completed':
         return addData.where((task) => task['completed'] == true).toList();
-
       case 'pending':
         return addData.where((task) => task['completed'] == false).toList();
-
       default:
-        return addData; // Returns all tasks
+        return addData.toList();
     }
+  }
+
+  // Get filtered tasks based on the current selected filter
+  List<Map<String, dynamic>> getFilteredTasks() {
+    return getTasksByFilter(filteredTask.value);
+  }
+
+  // FilterTask (Update global state)
+  List<Map<String, dynamic>> applyFilterType(String type) {
+    filteredTask.value = type;
+    taskSearchData.value = getFilteredTasks();
+    return taskSearchData;
   }
 
   LinearGradient getGradient(int index) {
