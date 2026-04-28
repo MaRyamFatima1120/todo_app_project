@@ -11,6 +11,7 @@ import '../../../common/utils/validation.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_textform.dart';
 import '../../../common/widgets/drawer_widget.dart';
+import 'package:flutter_svg/svg.dart';
 import '../../view-model/home_controller.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -321,6 +322,44 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       );
                     },
+                  ),
+                  const Divider(height: 30, thickness: 0.5),
+                  ListTile(
+                    onTap: () => profileController.deleteAccount(context),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: SvgPicture.asset(
+                        AppIcon.logoutIcon,
+                        width: 20,
+                        height: 20,
+                        colorFilter: const ColorFilter.mode(
+                            AppColor.redColor, BlendMode.srcIn),
+                      ),
+                    ),
+                    title: Text(
+                      'Delete Account',
+                      style: textTheme(context).titleSmall?.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColor.redColor,
+                          ),
+                    ),
+                    subtitle: Text(
+                      'Permanently remove your account data',
+                      style: textTheme(context).bodySmall?.copyWith(
+                            fontSize: 12,
+                            color: AppColor.greyColor,
+                          ),
+                    ),
+                    trailing: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: AppColor.redColor,
+                      size: 16,
+                    ),
                   ),
                 ],
               ),

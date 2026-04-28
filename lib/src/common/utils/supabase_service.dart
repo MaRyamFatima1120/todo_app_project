@@ -265,6 +265,23 @@ class SupabaseService {
       return false;
     }
   }
+
+  // Delete User Account Data (Tasks & Profile)
+  Future<void> deleteUserAccount(String userId) async {
+    try {
+      // 1. Delete all tasks belonging to the user
+      await _supabase.from(_tableName).delete().eq('user_id', userId);
+      
+      // 2. Delete the user profile
+      await _supabase.from('profiles').delete().eq('id', userId);
+      
+      // Note: We cannot delete the Auth User directly from client-side without a service role or Edge Function.
+      // But we clear all their data and sign them out.
+    } catch (e) {
+      debugPrint('Error deleting account data: $e');
+      throw Exception("Failed to delete account data: $e");
+    }
+  }
 }
 // Updated at 2026-04-24
 

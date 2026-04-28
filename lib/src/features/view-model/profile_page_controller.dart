@@ -191,4 +191,73 @@ class ProfilePageController extends GetxController {
       }
     }
   }
+
+  // Delete Account Method
+  Future<void> deleteAccount(BuildContext context) async {
+    // Professional Confirmation Dialog
+    Get.defaultDialog(
+      title: "Delete Account",
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+      middleText: "Are you sure you want to delete your account? All your tasks and profile data will be permanently removed.",
+      middleTextStyle: const TextStyle(fontSize: 14),
+      backgroundColor: Colors.white,
+      radius: 15,
+      contentPadding: const EdgeInsets.all(20),
+      cancel: OutlinedButton(
+        onPressed: () => Get.back(),
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.grey),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+      ),
+      confirm: ElevatedButton(
+        onPressed: () async {
+          Get.back(); // Close dialog
+          try {
+            isLoading.value = true;
+            final user = _supabaseService.currentUser;
+            if (user != null) {
+              // 1. Delete all user data from Supabase
+              await _supabaseService.deleteUserAccount(user.id);
+              
+              // 2. Sign Out
+              await _supabaseService.signOut();
+              
+              // 3. Clear Local Storage
+              SharedPreferences prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              
+              // 4. Success Message & Redirect
+              Get.snackbar(
+                "Account Deleted", 
+                "Your account has been successfully removed.",
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.black87,
+                colorText: Colors.white,
+                icon: const Icon(Icons.delete_forever, color: Colors.red),
+              );
+              
+              Get.offAllNamed("/loginPage");
+            }
+          } catch (e) {
+            Get.snackbar(
+              "Error", 
+              "Failed to delete account. Please try again later.",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+            );
+          } finally {
+            isLoading.value = false;
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Delete", style: TextStyle(color: Colors.white)),
+      ),
+    );
+  }
 }
