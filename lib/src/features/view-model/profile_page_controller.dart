@@ -6,6 +6,7 @@ import '../../common/utils/global_variable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../common/constants/app_color.dart';
 import '../../common/utils/supabase_service.dart';
 import '../../common/utils/snack_bar_custom.dart';
 
@@ -184,60 +185,129 @@ class ProfilePageController extends GetxController {
 
   // Delete Account Method
   Future<void> deleteAccount(BuildContext context) async {
-    // Professional Confirmation Dialog
-    Get.defaultDialog(
-      titleStyle: textTheme(context).bodyLarge?.copyWith(
-            color: colorScheme(context).primary,
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-          ),
-      middleText:
-          "Are you sure you want to delete your account? All your tasks and profile data will be permanently removed.",
-      middleTextStyle: textTheme(context).bodySmall?.copyWith(
-            color: Colors.grey[600],
-            fontSize: 14.sp,
-          ),
-      backgroundColor: Colors.white,
-      radius: 20.r,
-      contentPadding: EdgeInsets.all(25.r),
-      cancel: OutlinedButton(
-        onPressed: () => Get.back(),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
         ),
-        child: Text("Cancel", style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
-      ),
-      confirm: ElevatedButton(
-        onPressed: () async {
-          Get.back(); // Close dialog
-          try {
-            isLoading.value = true;
-            final user = _supabaseService.currentUser;
-            if (user != null) {
-              await _supabaseService.deleteUserAccount(user.id);
-              await _supabaseService.signOut();
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              CustomSnackBar.error("Your account has been successfully removed.", title: "Account Deleted");
-              Get.offAllNamed("/loginPage");
-            }
-          } catch (e) {
-            CustomSnackBar.error("Failed to delete account. Please try again later.");
-          } finally {
-            isLoading.value = false;
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colorScheme(context).primary,
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: EdgeInsets.all(20.r),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.rectangle,
+            borderRadius: BorderRadius.circular(20.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10.0,
+                offset: const Offset(0.0, 10.0),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(15.r),
+                decoration: BoxDecoration(
+                  color: AppColor.redColor.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.delete_forever_rounded,
+                  color: AppColor.redColor,
+                  size: 30.sp,
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Text(
+                "Delete Account",
+                style: textTheme(context).bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20.sp,
+                    ),
+              ),
+              SizedBox(height: 10.h),
+              Text(
+                "Are you sure you want to delete your account? All your tasks and profile data will be permanently removed. This action cannot be undone.",
+                textAlign: TextAlign.center,
+                style: textTheme(context).bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 14.sp,
+                    ),
+              ),
+              SizedBox(height: 25.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: textTheme(context).bodySmall?.copyWith(
+                              color: Colors.grey[700],
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Get.back(); // Close dialog
+                        try {
+                          isLoading.value = true;
+                          final user = _supabaseService.currentUser;
+                          if (user != null) {
+                            await _supabaseService.deleteUserAccount(user.id);
+                            await _supabaseService.signOut();
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            await prefs.clear();
+                            CustomSnackBar.error(
+                                "Your account has been successfully removed.",
+                                title: "Account Deleted");
+                            Get.offAllNamed("/loginPage");
+                          }
+                        } catch (e) {
+                          CustomSnackBar.error(
+                              "Failed to delete account. Please try again later.");
+                        } finally {
+                          isLoading.value = false;
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColor.redColor,
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                      ),
+                      child: Text(
+                        "Delete",
+                        style: textTheme(context).bodySmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        child: Text("Delete", style: TextStyle(color: Colors.white, fontSize: 14.sp)),
       ),
     );
   }

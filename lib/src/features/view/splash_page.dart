@@ -22,7 +22,7 @@ class _SplashPageState extends State<SplashPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            height: 0.4.sh,
+            height: 0.02.sh,
           ),
           Image.asset(
             "assets/images/LOGO copy.png",
@@ -35,14 +35,14 @@ class _SplashPageState extends State<SplashPage> {
           ),
           Text("Todo App", style: textTheme(context).bodyLarge),
           SizedBox(
-            height: 0.2.sh,
+            height: 0.05.sh,
           ),
-          Padding(
-            padding: const EdgeInsets.all(30.0),
-            child: Center(
-                child: Text("Developed by Maryam Fatima",
-                    style: textTheme(context).titleSmall)),
-          ),
+          // Padding(
+          //   padding: const EdgeInsets.all(30.0),
+          //   child: Center(
+          //       child: Text("Developed by Maryam Fatima",
+          //           style: textTheme(context).titleSmall)),
+          // ),
         ],
       ),
     ));

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../common/utils/global_variable.dart';
+import '../../common/widgets/custom_confirmation_dialog.dart';
 import '../../common/utils/supabase_service.dart';
 import '../../common/utils/snack_bar_custom.dart';
 
@@ -43,6 +45,10 @@ class AuthController extends GetxController {
           CustomSnackBar.success("Account created and logged in successfully!");
           Get.offAllNamed("/mainPage");
         } else {
+          // Save email even if not logged in yet, for the forget page or login field
+          SharedPreferences sp = await SharedPreferences.getInstance();
+          sp.setString("email", email);
+          
           // If email confirmation is on
           CustomSnackBar.show(
             title: "Success",
@@ -99,17 +105,31 @@ class AuthController extends GetxController {
 
   // Sign Out logic
   Future<void> logout() async {
-    SharedPreferences sp = await SharedPreferences.getInstance();
-    String? email = sp.getString("email");
+    try {
+      isLoading.value = true;
+      SharedPreferences sp = await SharedPreferences.getInstance();
+      String? email = sp.getString("email");
 
-    // Log the logout event before signing out
-    if (email != null) {
-      await _supabaseService.logEvent('logout', email);
+      // Running logEvent and signOut in parallel to save time
+      await Future.wait([
+        if (email != null) _supabaseService.logEvent('logout', email),
+        _supabaseService.signOut(),
+      ]);
+
+      // IMPORTANT: Don't use sp.clear() because it deletes the email.
+      // We only want to remove session-specific data.
+      await sp.remove("isLogin");
+      // Keep the email so it can be fetched in ForgetPage
+      
+      Get.offAllNamed("/loginPage");
+    } catch (e) {
+      debugPrint("Logout error: $e");
+      SharedPreferences sp = await SharedPreferences.getInstance();
+      await sp.remove("isLogin");
+      Get.offAllNamed("/loginPage");
+    } finally {
+      isLoading.value = false;
     }
-
-    await _supabaseService.signOut();
-    sp.clear();
-    Get.offAllNamed("/loginPage");
   }
 
   // Forgot Password logic
@@ -117,13 +137,21 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
       await _supabaseService.resetPasswordForEmail(email);
-      CustomSnackBar.show(
-        title: "Success",
-        message: "Password reset email has been sent!",
-        isSuccess: true,
-        icon: Icons.mark_email_read,
+      
+      Get.dialog(
+        CustomConfirmationDialog(
+          title: "Email Sent!",
+          message: "A password reset link has been sent to $email. Please check your inbox.",
+          confirmText: "Back to Login",
+          cancelText: "", // Hide cancel button
+          icon: Icons.mark_email_read_rounded,
+          iconColor: colorScheme(Get.context!).primary,
+          onConfirm: () {
+            Get.offAllNamed("/loginPage");
+          },
+        ),
+        barrierDismissible: false,
       );
-      Get.offAllNamed("/loginPage");
     } on AuthException catch (e) {
       CustomSnackBar.error(e.message, title: "Reset Failed");
     } catch (e) {

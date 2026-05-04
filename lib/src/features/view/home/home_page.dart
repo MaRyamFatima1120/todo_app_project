@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/features/view-model/main_controller.dart';
 import '../../../common/constants/app_color.dart';
@@ -188,7 +189,7 @@ class _HomepageState extends State<Homepage> {
                                     style:
                                         textTheme(context).bodySmall?.copyWith(
                                               fontWeight: FontWeight.bold,
-                                              color: AppColor.orangeColor,
+                                              color: colorScheme(context).primary,
                                             ),
                                   ),
                                 )
@@ -205,7 +206,7 @@ class _HomepageState extends State<Homepage> {
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
                                       Image.asset(
-                                        "assets/images/person.png",
+                                        "assets/images/home.png",
                                         fit: BoxFit.contain,
                                         width: 1.sw,
                                         height: 0.23.sh,

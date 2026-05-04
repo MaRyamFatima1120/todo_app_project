@@ -13,6 +13,8 @@ class CustomTextFormField extends StatelessWidget {
   final IconButton? suffixIcon;
   final int maxLines;
   final ValueChanged<String>? onChanged;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onFieldSubmitted;
 
   //constructor with named parameter
   const CustomTextFormField(
@@ -25,7 +27,9 @@ class CustomTextFormField extends StatelessWidget {
         this.icon,
         this.suffixIcon,
         this.maxLines =1,
-        this.onChanged
+        this.onChanged,
+        this.textInputAction,
+        this.onFieldSubmitted
 
       });
 
@@ -38,6 +42,8 @@ class CustomTextFormField extends StatelessWidget {
         cursorColor: colorScheme(context).onSecondary,
         controller: controller,
         onChanged: onChanged,
+        onFieldSubmitted: onFieldSubmitted,
+        textInputAction: textInputAction,
         keyboardType: keyboard,
         validator: validator,
         obscureText: obscureText,
@@ -61,7 +67,8 @@ class CustomTextFormField extends StatelessWidget {
               )),
           focusedBorder:  OutlineInputBorder(
               borderSide: BorderSide(
-                color:colorScheme(context).onSecondary,
+                color:colorScheme(context).primary,
+                width: 2.0,
               )),
           errorBorder:const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.redAccent)),

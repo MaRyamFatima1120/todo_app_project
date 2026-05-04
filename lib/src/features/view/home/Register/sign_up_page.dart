@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:todo_app/src/common/widgets/custom_button.dart';
+import '../../../../common/constants/app_color.dart';
 import '../../../../common/utils/global_variable.dart';
 import '../../../../common/utils/validation.dart';
 import '../../../../common/widgets/custom_textform.dart';
@@ -55,6 +56,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Center(
+                      child: Image.asset(
+                        "assets/images/home.png",
+                        fit: BoxFit.contain,
+                        width: 0.6.sw,
+                        height: 0.18.sh,
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
                     Text("Create Account",
                         style: textTheme(context).titleMedium?.copyWith(
                             fontSize: 24.sp,
@@ -109,6 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             keyboard: TextInputType.text,
                             validator: validateData,
                             controller: _user,
+                            textInputAction: TextInputAction.next,
                           ),
                           SizedBox(height: 20.h),
                           CustomTextFormField(
@@ -118,6 +129,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             keyboard: TextInputType.emailAddress,
                             controller: _email,
                             validator: validateEmail,
+                            textInputAction: TextInputAction.next,
                           ),
                           SizedBox(height: 20.h),
                           OverflowBar(
@@ -132,6 +144,18 @@ class _RegisterPageState extends State<RegisterPage> {
                                 validator: validatePassword,
                                 controller: _password,
                                 obscureText: _obscureText,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (value) async {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
+                                    await _authController.register(
+                                      _email.text.trim(),
+                                      _password.text.trim(),
+                                      _user.text.trim(),
+                                      imageFile: _image,
+                                    );
+                                  }
+                                },
                                 suffixIcon: IconButton(
                                   onPressed: () {
                                     setState(() {

@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_app/src/features/view-model/home_controller.dart';
 import 'package:todo_app/src/features/view-model/main_controller.dart';
 import 'package:todo_app/src/features/view-model/profile_page_controller.dart';
+import 'package:todo_app/src/common/widgets/custom_confirmation_dialog.dart';
 import '../../features/view-model/auth_controller.dart';
 import '../constants/app_color.dart';
 import '../constants/app_icon.dart';
@@ -123,28 +124,12 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                           .titleSmall
                           ?.copyWith(color: AppColor.redColor)),
                   onTap: () {
-                    Get.defaultDialog(
+                    CustomConfirmationDialog.show(
+                      context: context,
                       title: "Logout",
-                      middleText: "Are you sure you want to log out from the app?",
-                      titleStyle: textTheme(context).bodyLarge?.copyWith(
-                            color: colorScheme(context).primary,
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                      middleTextStyle: textTheme(context).bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                            fontSize: 14.sp,
-                          ),
-                      backgroundColor: Colors.white,
-                      radius: 20.r,
-                      contentPadding: EdgeInsets.all(25.r),
-                      textConfirm: "Yes, Logout",
-                      textCancel: "Cancel",
-                      confirmTextColor: Colors.white,
-                      cancelTextColor: colorScheme(context).primary,
-                      buttonColor: colorScheme(context).primary,
+                      message: "Are you sure you want to log out from the app?",
                       onConfirm: () async {
-                        Get.back(); // Close dialog
+                        Get.back();
                         await authController.logout();
                       },
                     );
@@ -153,12 +138,12 @@ class _DrawerWidgetState extends State<DrawerWidget> {
               ],
             ),
           ),
-          Padding(
+         /* Padding(
             padding: const EdgeInsets.all(30.0),
             child: Center(
                 child: Text("Developed by Maryam Fatima",
                     style: textTheme(context).titleSmall)),
-          ),
+          ),*/
         ]);
   }
 }

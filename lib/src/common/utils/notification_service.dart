@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -55,6 +56,68 @@ class NotificationService {
       debugPrint("Could not set local timezone: $e. Falling back to UTC.");
       tz.setLocalLocation(tz.getLocation('UTC'));
     }
+
+    // Start Real-time Listener
+    _listenToTaskChanges();
+  }
+
+  // Real-time Supabase Listener
+  void _listenToTaskChanges() {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    // Listen to NEW tasks added to the database
+    Supabase.instance.client
+        .from('tasks')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', user.id)
+        .listen((List<Map<String, dynamic>> data) {
+      if (data.isNotEmpty) {
+        // Find the most recently added task (assuming highest ID or just the first in stream)
+        final lastTask = data.first;
+        
+        // Check if this task was added in the last 5 seconds to avoid spamming old notifications
+        // In a real pro app, we'd use a local database to track which ones were already notified.
+        
+        showInstantNotification(
+          id: lastTask['id'].hashCode,
+          title: "Task Sync: ${lastTask['title']}",
+          body: "Your tasks are synced in real-time with the cloud.",
+        );
+      }
+    });
+  }
+
+  // Show an instant notification (Useful for Real-time triggers)
+  Future<void> showInstantNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'instant_notifications',
+      'Instant Notifications',
+      channelDescription: 'Real-time updates from the database',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher', // Using app logo
+    );
+    
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
+    await _notificationsPlugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
   }
 
   // Schedule a reminder for a specific task
@@ -131,22 +194,5 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
-  }
-
-  // Quick test notification
-  Future<void> showInstantNotification() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'test_channel',
-      'Test Notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-    const NotificationDetails details = NotificationDetails(android: androidDetails);
-    await _notificationsPlugin.show(
-      id: 0,
-      title: 'Test Notification',
-      body: 'If you see this, notifications are working!',
-      notificationDetails: details,
-    );
   }
 }

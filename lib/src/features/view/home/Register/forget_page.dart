@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../common/utils/global_variable.dart';
 import '../../../../common/widgets/custom_button.dart';
@@ -18,6 +19,22 @@ class _ForgetPageState extends State<ForgetPage> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserEmail();
+  }
+
+  Future<void> _loadUserEmail() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedEmail = prefs.getString('email');
+    if (savedEmail != null && savedEmail.isNotEmpty) {
+      setState(() {
+        _email.text = savedEmail;
+      });
+    }
+  }
 
   String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {

@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/utils/global_variable.dart';
 import '../../../../common/utils/validation.dart';
@@ -34,11 +35,13 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Image.asset(
-              "assets/images/person.png",
+              "assets/images/login_image.png",
               fit: BoxFit.fitHeight,
-              width: 1.sw,
-              height: 0.5.sh,
-              filterQuality: FilterQuality.high,
+              width: 0.8.sw,
+              height: 0.4.sh,
+            ),
+            SizedBox(
+              height: 0.05.sh,
             ),
             Form(
               key: _formKey,
@@ -53,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
                     keyboard: TextInputType.emailAddress,
                     controller: _email,
                     validator: validateEmail,
+                    textInputAction: TextInputAction.next,
                   ),
                   SizedBox(height: 20.h),
                   CustomTextFormField(
@@ -63,6 +67,15 @@ class _LoginPageState extends State<LoginPage> {
                     validator: validateData,
                     controller: _password,
                     obscureText: _obscureText,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (value) async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        await _authController.login(
+                          _email.text.trim(),
+                          _password.text.trim(),
+                        );
+                      }
+                    },
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {

@@ -91,6 +91,7 @@ class _MainPageState extends State<MainPage> {
                             keyboard: TextInputType.text,
                             controller: titleController,
                             validator: validateData,
+                            textInputAction: TextInputAction.next,
                           ),
                           CustomTextFormField(
                             labelText: "Write Something Here...",
@@ -98,6 +99,20 @@ class _MainPageState extends State<MainPage> {
                             keyboard: TextInputType.text,
                             controller: descriptionController,
                             validator: validateData,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (value) {
+                              if (_formKey.currentState!.validate()) {
+                                homeController.title.value =
+                                    titleController.text;
+                                homeController.description.value =
+                                    descriptionController.text;
+                                homeController.saveData().then((_) {
+                                  titleController.clear();
+                                  descriptionController.clear();
+                                });
+                                Get.back();
+                              }
+                            },
                           ),
                           GestureDetector(
                             onTap: () async {

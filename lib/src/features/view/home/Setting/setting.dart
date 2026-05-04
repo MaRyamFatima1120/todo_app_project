@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_app/src/common/widgets/custom_confirmation_dialog.dart';
 import '../../../../common/constants/app_color.dart';
 import '../../../../common/constants/app_icon.dart';
 import '../../../../common/utils/global_variable.dart';
@@ -78,30 +79,13 @@ class _SettingPageState extends State<SettingPage> {
                     .titleSmall
                     ?.copyWith(color: AppColor.redColor)),
             onTap: () {
-              Get.defaultDialog(
+              CustomConfirmationDialog.show(
+                context: context,
                 title: "Logout",
-                middleText: "Are you sure you want to log out from the app?",
-                titleStyle: textTheme(context).bodyLarge?.copyWith(
-                      color: colorScheme(context).primary,
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                middleTextStyle: textTheme(context).bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: 14.sp,
-                    ),
-                backgroundColor: Colors.white,
-                radius: 20.r,
-                contentPadding: EdgeInsets.all(25.r),
-                textConfirm: "Yes, Logout",
-                textCancel: "Cancel",
-                confirmTextColor: Colors.white,
-                cancelTextColor: colorScheme(context).primary,
-                buttonColor: colorScheme(context).primary,
+                message: "Are you sure you want to log out from the app?",
                 onConfirm: () async {
-                  Get.back(); // Close dialog
-                  // Use AuthController logout to ensure Supabase session is cleared too
-                  Get.find<AuthController>().logout();
+                  Get.back();
+                  await Get.find<AuthController>().logout();
                 },
               );
             },

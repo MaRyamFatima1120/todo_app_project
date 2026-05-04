@@ -15,6 +15,14 @@ void main() async {
     anonKey: SupabaseConstants.supabaseAnonKey,
   );
 
+  // Deep Link Listener for Password Reset
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    final AuthChangeEvent event = data.event;
+    if (event == AuthChangeEvent.passwordRecovery) {
+      Get.offAllNamed('/resetPassword');
+    }
+  });
+
   final notificationService = NotificationService();
   await notificationService.init();
 
