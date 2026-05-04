@@ -7,6 +7,7 @@ import 'package:todo_app/src/features/view/home/Setting/faq_page.dart';
 import 'package:todo_app/src/features/view/home/view_page.dart';
 import 'package:todo_app/src/features/view/splash_page.dart';
 import '../features/view/home/Setting/help_feedback_page.dart';
+import '../features/view/home/Register/reset_password_page.dart';
 import '../features/view/home/home_page.dart';
 
 import '../features/view/home/task_view.dart';
@@ -65,6 +66,9 @@ class MyAppRouter {
         name: "/helpPage",
         page: () => const HelpFeedbackPage(),
         transition: Transition.fade),
-
+    GetPage(
+        name: "/resetPassword",
+        page: () => const ResetPasswordPage(),
+        transition: Transition.fade),
   ];
 }

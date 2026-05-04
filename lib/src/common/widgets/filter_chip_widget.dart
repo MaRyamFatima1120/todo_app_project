@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';import 'package:get/get.dart';
 import '../../features/view-model/filter_chip_widget_controller.dart';
 import '../utils/global_variable.dart';
 
@@ -20,7 +20,7 @@ class FilterChipWidget extends StatelessWidget {
       return  FilterChip(
         padding: const EdgeInsets.all(10.0),
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(40.0),
+            borderRadius: BorderRadius.circular(40.0.r),
             side:BorderSide.none
         ),
         showCheckmark: false,

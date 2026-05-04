@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/common/utils/global_variable.dart';
 
@@ -47,10 +48,18 @@ class _ViewPageState extends State<ViewPage> {
   }
 
   void _openEditDialog(BuildContext context, int index) {
+    // Pre-fill reminder time
+    if (controller.addData[index]['reminder_time'] != null) {
+      controller.reminderTime.value =
+          DateTime.parse(controller.addData[index]['reminder_time']);
+    } else {
+      controller.reminderTime.value = null;
+    }
+
     final titleController =
-    TextEditingController(text: controller.addData[index]['title']);
+        TextEditingController(text: controller.addData[index]['title']);
     final descriptionController =
-    TextEditingController(text: controller.addData[index]['description']);
+        TextEditingController(text: controller.addData[index]['description']);
     showDialog(
         barrierDismissible: false,
         context: context,
@@ -60,30 +69,89 @@ class _ViewPageState extends State<ViewPage> {
                 child: Text(
                   "Edit Task",
                   style: textTheme(context).titleMedium?.copyWith(
-                      color: colorScheme(context).onSecondary, fontSize: 24),
+                      color: colorScheme(context).onSecondary, fontSize: 24.sp),
                 )),
             content: SizedBox(
-              width: 300,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomTextFormField(
-                    labelText: "title",
-                    keyboard: TextInputType.text,
-                    controller: titleController,
-                    validator: validateData,
-                  ),
-                  SizedBox(
-                    height: Get.height * 0.03,
-                  ),
-                  CustomTextFormField(
-                    labelText: "Description",
-                    maxLines: 4,
-                    keyboard: TextInputType.text,
-                    controller: descriptionController,
-                    validator: validateData,
-                  ),
-                ],
+              width: 300.w,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomTextFormField(
+                      labelText: "title",
+                      keyboard: TextInputType.text,
+                      controller: titleController,
+                      validator: validateData,
+                    ),
+                    SizedBox(
+                      height: 0.03.sh,
+                    ),
+                    CustomTextFormField(
+                      labelText: "Description",
+                      maxLines: 4,
+                      keyboard: TextInputType.text,
+                      controller: descriptionController,
+                      validator: validateData,
+                    ),
+                    SizedBox(height: 0.02.sh),
+                    GestureDetector(
+                      onTap: () async {
+                        TimeOfDay? pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (pickedTime != null) {
+                          DateTime now = DateTime.now();
+                          controller.reminderTime.value = DateTime(
+                              now.year,
+                              now.month,
+                              now.day,
+                              pickedTime.hour,
+                              pickedTime.minute);
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.w, vertical: 12.h),
+                        decoration: BoxDecoration(
+                          color: controller
+                              .getIconColor(index)
+                              .withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                              color: controller
+                                  .getIconColor(index)
+                                  .withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.alarm_rounded,
+                                color: controller.getIconColor(index),
+                                size: 20.sp),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Obx(() => Text(
+                                    controller.reminderTime.value == null
+                                        ? "Update Reminder"
+                                        : "New Reminder: ${controller.formatDate(controller.reminderTime.value!.toIso8601String())}",
+                                    style: textTheme(context)
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: controller.getIconColor(index),
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13.sp,
+                                        ),
+                                  )),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded,
+                                size: 14.sp,
+                                color: controller.getIconColor(index)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             actions: [
@@ -92,14 +160,14 @@ class _ViewPageState extends State<ViewPage> {
                 child: Text(
                   "Cancel",
                   style: textTheme(context).titleSmall?.copyWith(
-                      fontSize: 17, color: controller.getIconColor(index)),
+                      fontSize: 17.sp, color: controller.getIconColor(index)),
                 ),
               ),
               SizedBox(
-                width: Get.width * 0.005,
+                width: 0.005.sw,
               ),
               CustomButton(
-                width: 100,
+                width: 100.w,
                 pressed: () {
                   // Save the edited task details
                   controller.editTask(
@@ -117,7 +185,7 @@ class _ViewPageState extends State<ViewPage> {
                   "Edit",
                   style: textTheme(context)
                       .titleSmall
-                      ?.copyWith(fontSize: 16, color: Colors.white),
+                      ?.copyWith(fontSize: 16.sp, color: Colors.white),
                 ),
               ),
             ],
@@ -133,17 +201,17 @@ class _ViewPageState extends State<ViewPage> {
         color: colorScheme(context).onSecondary,
       ),
       content: SizedBox(
-        width: 300,
+        width: 300.w,
         child: Column(
           children: [
             Text(
               "Are You sure you want to delete this task? ",
               style: textTheme(context).titleSmall?.copyWith(
                   color: colorScheme(context).onSecondary.withValues(alpha: 0.7),
-                  fontSize: 12),
+                  fontSize: 12.sp),
             ),
             Text(title.toUpperCase(),
-                style: textTheme(context).titleSmall?.copyWith(fontSize: 12)),
+                style: textTheme(context).titleSmall?.copyWith(fontSize: 12.sp)),
           ],
         ),
       ),
@@ -154,15 +222,15 @@ class _ViewPageState extends State<ViewPage> {
             "Cancel",
             style: textTheme(context)
                 .titleSmall
-                ?.copyWith(fontSize: 16, color: controller.getIconColor(index)),
+                ?.copyWith(fontSize: 16.sp, color: controller.getIconColor(index)),
           ),
         ),
         SizedBox(
-          width: Get.width * 0.005,
+          width: 0.005.sw,
         ),
         CustomButton(
-          width: 100,
-          height: 40,
+          width: 100.w,
+          height: 40.h,
           pressed: () {
             controller.deleteData(index);
             Navigator.of(context).pop();
@@ -173,7 +241,7 @@ class _ViewPageState extends State<ViewPage> {
             "Delete",
             style: textTheme(context)
                 .titleSmall
-                ?.copyWith(fontSize: 16, color: Colors.white),
+                ?.copyWith(fontSize: 16.sp, color: Colors.white),
           ),
         ),
       ],
@@ -248,10 +316,10 @@ class _ViewPageState extends State<ViewPage> {
                     ),
                     Container(
                       padding:const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
-                      width: Get.width * 0.25,
-                      height: Get.height * 0.035,
+                      width: 0.25.sw,
+                      height: 0.035.sh,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5.0),
+                        borderRadius: BorderRadius.circular(5.0.r),
                         color: Colors.white,
                       ),
                       child: Obx(()=>
@@ -271,14 +339,17 @@ class _ViewPageState extends State<ViewPage> {
                     ),
                   ],
                 ),
-                Text(
-                  controller.formatDate(time), // Display formatted time
-                  style: textTheme(context)
-                      .titleSmall
-                      ?.copyWith(color: colorScheme(context).onPrimary),
-                ),
-
-
+                Obx(() => Text(
+                  controller.addData[index]['reminder_time'] != null
+                      ? "Reminder: ${controller.formatDate(controller.addData[index]['reminder_time'])}"
+                      : controller.formatDate(time),
+                  style: textTheme(context).titleSmall?.copyWith(
+                        color: colorScheme(context).onPrimary,
+                        fontWeight: controller.addData[index]['reminder_time'] != null
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                )),
               ],
             ),
           ),
@@ -286,7 +357,7 @@ class _ViewPageState extends State<ViewPage> {
             flex: 5,
             child: Container(
               padding: const EdgeInsets.all(40.0),
-              width: Get.width,
+              width: 1.sw,
               decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(

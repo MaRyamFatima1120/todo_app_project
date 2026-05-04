@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../common/constants/app_color.dart';
@@ -46,7 +47,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           centerTitle: true,
           title: Text("Help and FeedBack ",
               style: textTheme(context).titleSmall?.copyWith(
-                  fontSize: 19,
+                  fontSize: 19.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColor.greyColor)),
         ),
@@ -62,7 +63,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                     'Get assistance, share your thoughts, or support our app’s growth.',
                     style: textTheme(context).titleSmall,
                   ),
-                  SizedBox(height: Get.height * 0.015),
+                  SizedBox(height: 0.015.sh),
                   Form(
                     key: _formKey,
                     child: Column(
@@ -74,7 +75,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                           validator: validateData,
                           controller: userController,
                         ),
-                        SizedBox(height: Get.height * 0.015),
+                        SizedBox(height: 0.015.sh),
                         CustomTextFormField(
                           maxLines: 1,
                           icon: const Icon(Icons.email_outlined),
@@ -83,7 +84,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                           controller: emailController,
                           validator: validateEmail,
                         ),
-                        SizedBox(height: Get.height * 0.015),
+                        SizedBox(height: 0.015.sh),
                         CustomTextFormField(
                           labelText: "Description",
                           maxLines: 4,
@@ -91,7 +92,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                           controller: descriptionController,
                           validator: validateData,
                         ),
-                        SizedBox(height: Get.height * 0.025),
+                        SizedBox(height: 0.025.sh),
                         Obx(() => controller.isLoading.value
                             ? const CircularProgressIndicator()
                             : CustomButton(
@@ -106,7 +107,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                                   }
                                 },
                                 bgColor: colorScheme(context).primary,
-                                width: Get.width * 0.8,
+                                width: 0.8.sw,
                                 child: Text(
                                   "Submit",
                                   style: textTheme(context).bodyMedium,
@@ -115,10 +116,10 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: Get.height * 0.025),
+                  SizedBox(height: 0.025.sh),
                   Text(
                     'Follow us on social media and share our app with your friends!',
-                    style: textTheme(context).titleSmall?.copyWith(fontSize: 11),
+                    style: textTheme(context).titleSmall?.copyWith(fontSize: 11.sp),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -127,8 +128,8 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                         onPressed: () {},
                         icon: SvgPicture.asset(
                           AppIcon.linkedinIcon,
-                          width: 24,
-                          height: 24,
+                          width: 24.w,
+                          height: 24.h,
                           colorFilter: ColorFilter.mode(
                               colorScheme(context).primary, BlendMode.srcIn),
                         ),
@@ -137,8 +138,8 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                         onPressed: () {},
                         icon: SvgPicture.asset(
                           AppIcon.facebookIcon,
-                          width: 24,
-                          height: 24,
+                          width: 24.w,
+                          height: 24.h,
                           colorFilter: ColorFilter.mode(
                               colorScheme(context).primary, BlendMode.srcIn),
                         ),
@@ -147,8 +148,8 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                         onPressed: () {},
                         icon: SvgPicture.asset(
                           AppIcon.instaIcon,
-                          width: 24,
-                          height: 24,
+                          width: 24.w,
+                          height: 24.h,
                           colorFilter: ColorFilter.mode(
                               colorScheme(context).primary, BlendMode.srcIn),
                         ),

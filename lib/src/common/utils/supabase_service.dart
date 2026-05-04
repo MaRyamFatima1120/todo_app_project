@@ -18,7 +18,7 @@ class SupabaseService {
           .from(_tableName)
           .select('id, title, description, "timeStamp", completed, user_id')
           .eq('user_id', user.id)
-          .order('created_at', ascending: false);
+          .order('id', ascending: false);
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
       debugPrint('Error fetching tasks: $e');
@@ -83,7 +83,14 @@ class SupabaseService {
   Future<void> resetPasswordForEmail(String email) async {
     await _supabase.auth.resetPasswordForEmail(
       email,
-      redirectTo: 'io.supabase.flutter://reset-callback/',
+      redirectTo: 'todoapp://reset-callback/',
+    );
+  }
+
+  // Auth: Update Password
+  Future<void> updatePassword(String newPassword) async {
+    await _supabase.auth.updateUser(
+      UserAttributes(password: newPassword),
     );
   }
 
@@ -266,7 +273,7 @@ class SupabaseService {
     }
   }
 
-  // Delete User Account Data (Tasks & Profile)
+  // Delete User Account Data (Tasks & Profile & Auth)
   Future<void> deleteUserAccount(String userId) async {
     try {
       // 1. Delete all tasks belonging to the user
@@ -275,8 +282,9 @@ class SupabaseService {
       // 2. Delete the user profile
       await _supabase.from('profiles').delete().eq('id', userId);
       
-      // Note: We cannot delete the Auth User directly from client-side without a service role or Edge Function.
-      // But we clear all their data and sign them out.
+      // 3. Delete from Authentication using RPC
+      await _supabase.rpc('delete_user');
+      
     } catch (e) {
       debugPrint('Error deleting account data: $e');
       throw Exception("Failed to delete account data: $e");

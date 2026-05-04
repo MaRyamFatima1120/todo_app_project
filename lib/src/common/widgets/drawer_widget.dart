@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,7 +36,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: Get.width,
+            width: 1.sw,
             decoration: BoxDecoration(
                 gradient: Get.find<HomeController>().getGradient(2)),
             child: SafeArea(
@@ -48,7 +49,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 children: [
                   Obx(
                     () => CircleAvatar(
-                      radius: 40,
+                      radius: 40.r,
                       backgroundColor: profileController.avatarUrl.value.isEmpty
                           ? controller.getIconColor(2)
                           : Colors.white,
@@ -63,7 +64,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                                   : '',
                               style: textTheme(context)
                                   .titleMedium
-                                  ?.copyWith(color: Colors.white, fontSize: 20),
+                                  ?.copyWith(color: Colors.white, fontSize: 20.sp),
                             )
                           : null,
                     ),
@@ -114,15 +115,39 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ListTile(
                   leading: SvgPicture.asset(
                     AppIcon.logoutIcon,
-                    width: 24,
-                    height: 24,
+                    width: 24.w,
+                    height: 24.h,
                   ),
                   title: Text("Log Out",
                       style: textTheme(context)
                           .titleSmall
                           ?.copyWith(color: AppColor.redColor)),
-                  onTap: () async {
-                    await authController.logout();
+                  onTap: () {
+                    Get.defaultDialog(
+                      title: "Logout",
+                      middleText: "Are you sure you want to log out from the app?",
+                      titleStyle: textTheme(context).bodyLarge?.copyWith(
+                            color: colorScheme(context).primary,
+                            fontSize: 22.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                      middleTextStyle: textTheme(context).bodySmall?.copyWith(
+                            color: Colors.grey[600],
+                            fontSize: 14.sp,
+                          ),
+                      backgroundColor: Colors.white,
+                      radius: 20.r,
+                      contentPadding: EdgeInsets.all(25.r),
+                      textConfirm: "Yes, Logout",
+                      textCancel: "Cancel",
+                      confirmTextColor: Colors.white,
+                      cancelTextColor: colorScheme(context).primary,
+                      buttonColor: colorScheme(context).primary,
+                      onConfirm: () async {
+                        Get.back(); // Close dialog
+                        await authController.logout();
+                      },
+                    );
                   },
                 ),
               ],
@@ -166,11 +191,11 @@ class CustomListTile extends StatelessWidget {
     return ListTile(
       leading: SvgPicture.asset(
         svgIconPath,
-        width: 24,
-        height: 24,
-        colorFilter: ColorFilter.mode(AppColor.greyColor, BlendMode.srcIn),
+        width: 24.w,
+        height: 24.h,
+        colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
       ),
-      title: Text(title, style: textTheme(context).titleSmall),
+      title: Text(title, style: titleStyle ?? textTheme(context).titleSmall),
       onTap: onTap,
       trailing: icon,
     );

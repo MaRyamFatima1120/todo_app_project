@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../utils/global_variable.dart';
 
@@ -45,7 +46,7 @@ class CustomTextFormField extends StatelessWidget {
           labelText: labelText,
           alignLabelWithHint: true,
           labelStyle: textTheme(context).titleSmall?.copyWith(
-            fontSize: 14,
+            fontSize: 14.sp,
             fontWeight: FontWeight.normal,
             color: colorScheme(context).onSecondary.withValues(alpha: 0.8),
           ),
@@ -53,8 +54,7 @@ class CustomTextFormField extends StatelessWidget {
           suffixIcon: suffixIcon,
           errorStyle: textTheme(context).titleSmall?.copyWith(
               color: colorScheme(context).error,
-              fontSize: 12
-          ),
+              fontSize: 12.sp),
           enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
                 color:colorScheme(context).onSecondary,

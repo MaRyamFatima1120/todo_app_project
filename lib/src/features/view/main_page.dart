@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/common/constants/app_color.dart';
@@ -13,7 +14,6 @@ import 'home/home_page.dart';
 import 'home/profile_page.dart';
 import 'home/Setting/setting.dart';
 import 'home/task_view.dart';
-
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -34,7 +34,6 @@ class _MainPageState extends State<MainPage> {
     const TaskView(),
     const ProfilePage(),
     const SettingPage(),
-
   ];
 
   @override
@@ -42,91 +41,152 @@ class _MainPageState extends State<MainPage> {
     return Scaffold(
         body: Obx(() => _pages[mainController.selected.value]),
         floatingActionButton: Visibility(
-            visible: MediaQuery.of(context).viewInsets.bottom == 0.0,
+          visible: MediaQuery.of(context).viewInsets.bottom == 0.0,
           child: FloatingActionButton(
             shape: const CircleBorder(),
             onPressed: () {
               Get.bottomSheet(
-                Container(
-                  padding: const EdgeInsets.all(10.0),
-                  width: Get.width,
-                  height: Get.height * 0.5,
-                  decoration: const BoxDecoration(
-                      color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
-                    )
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "Add Task ",
-                              style: textTheme(context)
-                                  .bodyMedium
-                                  ?.copyWith(color: colorScheme(context).onSecondary),
-                              textDirection: TextDirection.rtl,
-                            ),
-                            SizedBox(width: Get.width * 0.25,),
-                            IconButton(
-                                onPressed: () {
-                                  Get.back();
-                                },
-                                icon: const Icon(Icons.close,
-                                    size: 20,color: Colors.black,)),
-                          ],
-                        ),
-
-                        CustomTextFormField(
-                          labelText: "title",
-                          keyboard: TextInputType.text,
-                          controller: titleController,
-                          validator: validateData,
-                        ),
-                        CustomTextFormField(
-                          labelText: "Write Something Here...",
-                          maxLines: 4,
-                          keyboard: TextInputType.text,
-                          controller: descriptionController,
-                          validator: validateData,
-                        ),
-                        CustomButton(
-                          pressed: () {
-                            if (_formKey.currentState!.validate()) {
-                           //Update the controller's observable values with text from controllers
-                              homeController.title.value = titleController.text;
-                              homeController.description.value =
-                                  descriptionController.text;
-                              //saveData
-                              homeController.saveData().then((_) {
-                                titleController.clear();
-                                descriptionController.clear();
-                              });
-                              Get.back();
-                            }
-                          },
-                          bgColor: colorScheme(context).primary,
-                          width: Get.width,
-                          child: Text(
-                            "Add",
-                            style: textTheme(context).bodyMedium,
+                  Container(
+                    padding: const EdgeInsets.all(10.0),
+                    width: 1.sw,
+                    height: 0.5.sh,
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        )),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "Add Task ",
+                                style: textTheme(context).bodyMedium?.copyWith(
+                                    color: colorScheme(context).onSecondary),
+                                textDirection: TextDirection.rtl,
+                              ),
+                              SizedBox(
+                                width: 0.25.sw,
+                              ),
+                              IconButton(
+                                  onPressed: () {
+                                    Get.back();
+                                  },
+                                  icon: Icon(
+                                    Icons.close,
+                                    size: 20.sp,
+                                    color: Colors.black,
+                                  )),
+                            ],
                           ),
-                        )
-                      ],
+                          CustomTextFormField(
+                            labelText: "title",
+                            keyboard: TextInputType.text,
+                            controller: titleController,
+                            validator: validateData,
+                          ),
+                          CustomTextFormField(
+                            labelText: "Write Something Here...",
+                            maxLines: 4,
+                            keyboard: TextInputType.text,
+                            controller: descriptionController,
+                            validator: validateData,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              TimeOfDay? pickedTime = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.now(),
+                              );
+                              if (pickedTime != null) {
+                                DateTime now = DateTime.now();
+                                homeController.reminderTime.value = DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    pickedTime.hour,
+                                    pickedTime.minute);
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w, vertical: 12.h),
+                              decoration: BoxDecoration(
+                                color: colorScheme(context)
+                                    .primary
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(
+                                    color: colorScheme(context)
+                                        .primary
+                                        .withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.alarm_rounded,
+                                      color: colorScheme(context).primary,
+                                      size: 20.sp),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: Obx(() => Text(
+                                          homeController.reminderTime.value ==
+                                                  null
+                                              ? "Set a Reminder"
+                                              : "Reminder: ${homeController.formatDate(homeController.reminderTime.value!.toIso8601String())}",
+                                          style: textTheme(context)
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: colorScheme(context)
+                                                    .primary,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13.sp,
+                                              ),
+                                        )),
+                                  ),
+                                  Icon(Icons.arrow_forward_ios_rounded,
+                                      size: 14.sp,
+                                      color: colorScheme(context).primary),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10.h),
+                          CustomButton(
+                            pressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                //Update the controller's observable values with text from controllers
+                                homeController.title.value =
+                                    titleController.text;
+                                homeController.description.value =
+                                    descriptionController.text;
+                                //saveData
+                                homeController.saveData().then((_) {
+                                  titleController.clear();
+                                  descriptionController.clear();
+                                });
+                                Get.back();
+                              }
+                            },
+                            bgColor: colorScheme(context).primary,
+                            width: 1.sw,
+                            child: Text(
+                              "Add",
+                              style: textTheme(context).bodyMedium,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                isScrollControlled: true,
-                isDismissible: false
-              );
+                  isScrollControlled: true,
+                  isDismissible: false);
             },
             child: const Icon(Icons.add),
           ),
@@ -142,8 +202,8 @@ class _MainPageState extends State<MainPage> {
               BottomNavigationBarItem(
                 icon: SvgPicture.asset(
                   AppIcon.homeIcon,
-                  width: 30,
-                  height: 30,
+                  width: 30.w,
+                  height: 30.h,
                   colorFilter:
                       ColorFilter.mode(AppColor.greyColor, BlendMode.srcIn),
                 ),
@@ -152,8 +212,8 @@ class _MainPageState extends State<MainPage> {
               BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     AppIcon.workIcon,
-                    width: 30,
-                    height: 30,
+                    width: 30.w,
+                    height: 30.h,
                     colorFilter:
                         ColorFilter.mode(AppColor.greyColor, BlendMode.srcIn),
                   ),
@@ -161,8 +221,8 @@ class _MainPageState extends State<MainPage> {
               BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     AppIcon.profileIcon,
-                    width: 30,
-                    height: 30,
+                    width: 30.w,
+                    height: 30.h,
                     colorFilter:
                         ColorFilter.mode(AppColor.greyColor, BlendMode.srcIn),
                   ),
@@ -170,8 +230,8 @@ class _MainPageState extends State<MainPage> {
               BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     AppIcon.settingIcon,
-                    width: 30,
-                    height: 30,
+                    width: 30.w,
+                    height: 30.h,
                     colorFilter:
                         ColorFilter.mode(AppColor.greyColor, BlendMode.srcIn),
                   ),

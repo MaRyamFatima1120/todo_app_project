@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common/utils/supabase_service.dart';
+import '../../common/utils/snack_bar_custom.dart';
 
 class AuthController extends GetxController {
   final SupabaseService _supabaseService = SupabaseService();
@@ -39,22 +40,23 @@ class AuthController extends GetxController {
           sp.setString("email", email);
           sp.setBool("isLogin", true);
 
-          Get.snackbar(
-              "Success", "Account created and logged in successfully!");
+          CustomSnackBar.success("Account created and logged in successfully!");
           Get.offAllNamed("/mainPage");
         } else {
           // If email confirmation is on
-          Get.snackbar("Success",
-              "Account created successfully. Please check your email for verification.");
+          CustomSnackBar.show(
+            title: "Success",
+            message: "Account created successfully. Please check your email for verification.",
+            icon: Icons.email,
+            duration: const Duration(seconds: 5),
+          );
           Get.offAllNamed("/loginPage");
         }
       }
     } on AuthException catch (e) {
-      Get.snackbar("Error", e.message,
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      CustomSnackBar.error(e.message, title: "Registration Failed");
     } catch (e) {
-      Get.snackbar("Error", "An unexpected error occurred",
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      CustomSnackBar.error("An unexpected error occurred");
     } finally {
       isLoading.value = false;
     }
@@ -78,11 +80,18 @@ class AuthController extends GetxController {
         Get.offAllNamed("/mainPage");
       }
     } on AuthException catch (e) {
-      Get.snackbar("Error", e.message,
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      String message = e.message;
+      if (message.toLowerCase().contains("invalid login credentials")) {
+        message = "Email or password wrong";
+      }
+      CustomSnackBar.show(
+        title: "Login Failed",
+        message: message,
+        isError: true,
+        icon: Icons.lock_person,
+      );
     } catch (e) {
-      Get.snackbar("Error", "An unexpected error occurred",
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      CustomSnackBar.error("Something went wrong. Please try again.");
     } finally {
       isLoading.value = false;
     }
@@ -108,14 +117,33 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
       await _supabaseService.resetPasswordForEmail(email);
-      Get.snackbar("Success", "Password reset email has been sent!");
+      CustomSnackBar.show(
+        title: "Success",
+        message: "Password reset email has been sent!",
+        isSuccess: true,
+        icon: Icons.mark_email_read,
+      );
       Get.offAllNamed("/loginPage");
     } on AuthException catch (e) {
-      Get.snackbar("Error", e.message,
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      CustomSnackBar.error(e.message, title: "Reset Failed");
     } catch (e) {
-      Get.snackbar("Error", "An unexpected error occurred",
-          backgroundColor: Colors.red.withValues(alpha: 0.1));
+      CustomSnackBar.error("An unexpected error occurred");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Update Password logic
+  Future<void> updatePassword(String newPassword) async {
+    try {
+      isLoading.value = true;
+      await _supabaseService.updatePassword(newPassword);
+      CustomSnackBar.success("Password updated successfully!");
+      Get.offAllNamed("/loginPage");
+    } on AuthException catch (e) {
+      CustomSnackBar.error(e.message, title: "Update Failed");
+    } catch (e) {
+      CustomSnackBar.error("An unexpected error occurred");
     } finally {
       isLoading.value = false;
     }

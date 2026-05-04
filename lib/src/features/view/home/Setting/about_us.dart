@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../common/constants/app_color.dart';
@@ -23,7 +24,7 @@ class _AboutPageState extends State<AboutPage> {
         title: Text(
           "About Us",
           style: textTheme(context).titleSmall?.copyWith(
-              fontSize: 19,
+              fontSize: 19.sp,
               fontWeight: FontWeight.w600,
               color: AppColor.greyColor),
         ),

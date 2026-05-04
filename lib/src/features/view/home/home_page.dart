@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/features/view-model/main_controller.dart';
 import '../../../common/constants/app_color.dart';
@@ -74,14 +75,15 @@ class _HomepageState extends State<Homepage> {
                                 icon: const Icon(Icons.short_text),
                               ),
                               SizedBox(
-                                width: Get.width * 0.6,
+                                width: 0.6.sw,
                               ),
                               Obx(
                                 () => CircleAvatar(
-                                  radius: 25,
-                                  backgroundColor: profileController.avatarUrl.value.isEmpty
-                                      ? controller.getIconColor(2)
-                                      : Colors.white,
+                                  radius: 25.r,
+                                  backgroundColor:
+                                      profileController.avatarUrl.value.isEmpty
+                                          ? controller.getIconColor(2)
+                                          : Colors.white,
                                   backgroundImage: profileController
                                           .avatarUrl.value.isNotEmpty
                                       ? CachedNetworkImageProvider(
@@ -100,7 +102,7 @@ class _HomepageState extends State<Homepage> {
                                                   .titleMedium
                                                   ?.copyWith(
                                                       color: Colors.white,
-                                                      fontSize: 20),
+                                                      fontSize: 20.sp),
                                             )
                                           : null,
                                 ),
@@ -108,7 +110,7 @@ class _HomepageState extends State<Homepage> {
                             ],
                           ),
                           SizedBox(
-                            height: Get.height * 0.01,
+                            height: 0.01.sh,
                           ),
                           Obx(
                             () => Text(
@@ -127,7 +129,7 @@ class _HomepageState extends State<Homepage> {
                                     .withValues(alpha: 0.7)),
                           ),
                           SizedBox(
-                            height: Get.height * 0.04,
+                            height: 0.04.sh,
                           ),
                           SearchBar(
                             focusNode: _focusNode,
@@ -136,7 +138,7 @@ class _HomepageState extends State<Homepage> {
                                     vertical: 10.0, horizontal: 16.0)),
                             shape:
                                 WidgetStateProperty.all(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
+                              borderRadius: BorderRadius.circular(10.0.r),
                             )),
                             hintText: "Search...",
                             hintStyle: WidgetStateProperty.all(
@@ -148,8 +150,8 @@ class _HomepageState extends State<Homepage> {
                             textStyle: WidgetStateProperty.all(
                                 textTheme(context).bodySmall),
                           ),
-                          const SizedBox(
-                            height: 48, // Get.height * 0.06 approx
+                          SizedBox(
+                            height: 48.h, // 0.06.sh approx
                           ),
                         ],
                       ),
@@ -175,7 +177,7 @@ class _HomepageState extends State<Homepage> {
                                   "My Task",
                                   style: textTheme(context).bodySmall?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 18),
+                                      fontSize: 18.sp),
                                 ),
                                 TextButton(
                                   onPressed: () {
@@ -192,11 +194,11 @@ class _HomepageState extends State<Homepage> {
                                 )
                               ],
                             ),
-                            const SizedBox(
-                              height: 5,
+                            SizedBox(
+                              height: 5.h,
                             ),
                             SizedBox(
-                              height: Get.height * 0.3,
+                              height: 0.3.sh,
                               child: Obx(() {
                                 if (controller.searchData.isEmpty) {
                                   return Column(
@@ -205,8 +207,8 @@ class _HomepageState extends State<Homepage> {
                                       Image.asset(
                                         "assets/images/person.png",
                                         fit: BoxFit.contain,
-                                        width: Get.width,
-                                        height: Get.height * 0.23,
+                                        width: 1.sw,
+                                        height: 0.23.sh,
                                       ),
                                       Text(
                                         "What do you want to do today?",
@@ -254,8 +256,8 @@ class _HomepageState extends State<Homepage> {
                                                       });
                                                 },
                                                 child: Container(
-                                                  width: Get.width * 0.44,
-                                                  height: Get.height * 0.25,
+                                                  width: 0.44.sw,
+                                                  height: 0.25.sh,
                                                   margin:
                                                       const EdgeInsets.all(4.0),
                                                   decoration: BoxDecoration(
@@ -263,7 +265,7 @@ class _HomepageState extends State<Homepage> {
                                                           .getGradient(index),
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              10)),
+                                                              10.r)),
                                                   child: Padding(
                                                     padding:
                                                         const EdgeInsets.all(
@@ -278,8 +280,8 @@ class _HomepageState extends State<Homepage> {
                                                               .start,
                                                       children: [
                                                         Container(
-                                                          height: 36,
-                                                          width: 36,
+                                                          height: 36.h,
+                                                          width: 36.w,
                                                           decoration:
                                                               const BoxDecoration(
                                                                   color: Colors
@@ -287,8 +289,10 @@ class _HomepageState extends State<Homepage> {
                                                                   shape: BoxShape
                                                                       .circle),
                                                           child: IconButton(
-                                                            padding: EdgeInsets.zero,
-                                                            constraints: const BoxConstraints(),
+                                                            padding:
+                                                                EdgeInsets.zero,
+                                                            constraints:
+                                                                const BoxConstraints(),
                                                             onPressed: () {
                                                               controller
                                                                   .toggleTaskCompletion(
@@ -301,21 +305,20 @@ class _HomepageState extends State<Homepage> {
                                                                         .check_circle
                                                                     : Icons
                                                                         .circle_outlined,
-                                                                size: 22,
+                                                                size: 22.sp,
                                                                 color: controller
                                                                     .getIconColor(
                                                                         index)),
                                                           ),
                                                         ),
                                                         SizedBox(
-                                                          height:
-                                                              Get.height * 0.01,
+                                                          height: 0.01.sh,
                                                         ),
                                                         Text(
                                                           item['title']
                                                               .toUpperCase(),
                                                           style: textTheme(context).bodyMedium?.copyWith(
-                                                              fontSize: 13,
+                                                              fontSize: 13.sp,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .bold,
@@ -338,7 +341,7 @@ class _HomepageState extends State<Homepage> {
                                                                   .bodyMedium
                                                                   ?.copyWith(
                                                                     fontSize:
-                                                                        12,
+                                                                        12.sp,
                                                                   ),
                                                           maxLines: 2,
                                                           overflow: TextOverflow
@@ -356,7 +359,7 @@ class _HomepageState extends State<Homepage> {
                                                                   .bodyMedium
                                                                   ?.copyWith(
                                                                       fontSize:
-                                                                          13,
+                                                                          13.sp,
                                                                       fontWeight:
                                                                           FontWeight
                                                                               .bold),
@@ -374,13 +377,12 @@ class _HomepageState extends State<Homepage> {
                                                                             .first,
                                                                       });
                                                                 },
-                                                                icon:
-                                                                    const Icon(
+                                                                icon: Icon(
                                                                   Icons
                                                                       .arrow_forward,
                                                                   color: Colors
                                                                       .white,
-                                                                  size: 15,
+                                                                  size: 15.sp,
                                                                 ))
                                                           ],
                                                         )
@@ -419,7 +421,7 @@ class _HomepageState extends State<Homepage> {
                                               .bodySmall
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: 18,
+                                                fontSize: 18.sp,
                                               ),
                                         ),
                                         ListView.builder(
@@ -444,14 +446,14 @@ class _HomepageState extends State<Homepage> {
                                                     });
                                               },
                                               leading: Container(
-                                                width: Get.width * 0.16,
-                                                height: Get.height * 0.07,
+                                                width: 0.16.sw,
+                                                height: 0.07.sh,
                                                 decoration: BoxDecoration(
                                                   color: controller
                                                       .getIconColor(index),
                                                   borderRadius:
                                                       BorderRadius.circular(
-                                                          10.0),
+                                                          10.0.r),
                                                 ),
                                                 child: Center(
                                                   child: Text(
@@ -474,7 +476,7 @@ class _HomepageState extends State<Homepage> {
                                                 style: textTheme(context)
                                                     .titleSmall
                                                     ?.copyWith(
-                                                      fontSize: 12,
+                                                      fontSize: 12.sp,
                                                       color:
                                                           colorScheme(context)
                                                               .onSecondary

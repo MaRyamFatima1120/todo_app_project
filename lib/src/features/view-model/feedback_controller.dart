@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../common/utils/supabase_service.dart';
+import '../../common/utils/snack_bar_custom.dart';
 
 class FeedbackController extends GetxController {
   final SupabaseService _supabaseService = SupabaseService();
@@ -32,13 +33,7 @@ class FeedbackController extends GetxController {
     required String description,
   }) async {
     if (userName.isEmpty || email.isEmpty || description.isEmpty) {
-      Get.snackbar(
-        "Error",
-        "All fields are required",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackBar.error("All fields are required");
       return;
     }
 
@@ -72,13 +67,7 @@ class FeedbackController extends GetxController {
         barrierDismissible: false,
       );
     } else {
-      Get.snackbar(
-        "Error",
-        "Failed to submit feedback. Please try again.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      CustomSnackBar.error("Failed to submit feedback. Please try again.");
     }
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../common/utils/global_variable.dart';
 import '../view-model/splash_controller.dart';
+
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -16,26 +18,33 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height:Get.height * 0.4 ,),
-              Image.asset("assets/images/logo.png",width:80,
-                height: 80,filterQuality: FilterQuality.high,color: colorScheme(context).primary,
-              ),
-              SizedBox(height:Get.height * 0.01 ,),
-              Text("Todo App",style: textTheme(context).bodyLarge ),
-              SizedBox(height:Get.height * 0.2 ,),
-              Padding(
-                padding: const EdgeInsets.all(30.0),
-                child: Center(
-                    child: Text("Developed by Maryam Fatima",
-                        style: textTheme(context).titleSmall)),
-              ),
-            ],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            height: 0.4.sh,
           ),
-        )
-
-    );
+          Image.asset(
+            "assets/images/LOGO copy.png",
+            width: 120.w,
+            height: 120.h,
+            filterQuality: FilterQuality.high,
+          ),
+          SizedBox(
+            height: 0.01.sh,
+          ),
+          Text("Todo App", style: textTheme(context).bodyLarge),
+          SizedBox(
+            height: 0.2.sh,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(30.0),
+            child: Center(
+                child: Text("Developed by Maryam Fatima",
+                    style: textTheme(context).titleSmall)),
+          ),
+        ],
+      ),
+    ));
   }
 }

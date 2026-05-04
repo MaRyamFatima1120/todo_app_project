@@ -7,32 +7,46 @@ import '../../../../common/widgets/custom_button.dart';
 import '../../../../common/widgets/custom_textform.dart';
 import '../../../view-model/auth_controller.dart';
 
-class ForgetPage extends StatefulWidget {
-  const ForgetPage({super.key});
+class ResetPasswordPage extends StatefulWidget {
+  const ResetPasswordPage({super.key});
 
   @override
-  State<ForgetPage> createState() => _ForgetPageState();
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _ForgetPageState extends State<ForgetPage> {
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final _email = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
 
-  String? validateEmail(String? value) {
+  String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please Enter your Email';
+      return 'Please Enter your new Password';
     }
-    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-      return "Please Enter a valid email address";
+    if (value.length < 6) {
+      return "Password must be at least 6 characters";
     }
     return null;
   }
+
+  String? validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please Confirm your Password';
+    }
+    if (value != _passwordController.text) {
+      return "Passwords do not match";
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(),
+          appBar: AppBar(
+            title: const Text("Reset Password"),
+          ),
           body: SingleChildScrollView(
             child: Container(
               margin: const EdgeInsets.all(20.0),
@@ -40,12 +54,12 @@ class _ForgetPageState extends State<ForgetPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Forgot password?",
+                    "Set New Password",
                     style: textTheme(context).bodyLarge,
                   ),
                   SizedBox(height: 10.h,),
                   Text(
-                    "Enter your email address and we’ll send you confirmation code to reset your password.",
+                    "Your new password must be different from previously used passwords.",
                     style: textTheme(context).bodySmall?.copyWith(
                       color: const Color(0xFF878787),
                       fontWeight: FontWeight.normal
@@ -60,13 +74,24 @@ class _ForgetPageState extends State<ForgetPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         CustomTextFormField(
-                          labelText: "Email",
-                          keyboard: TextInputType.emailAddress,
-                          controller: _email,
-                          validator: validateEmail,
+                          labelText: "New Password",
+                          keyboard: TextInputType.visiblePassword,
+                          controller: _passwordController,
+                          validator: validatePassword,
+                          obscureText: true,
                         ),
                         SizedBox(
-                            height: 0.023.sh
+                            height: 0.02.sh
+                        ),
+                        CustomTextFormField(
+                          labelText: "Confirm Password",
+                          keyboard: TextInputType.visiblePassword,
+                          controller: _confirmPasswordController,
+                          validator: validateConfirmPassword,
+                          obscureText: true,
+                        ),
+                        SizedBox(
+                            height: 0.04.sh
                         ),
                         Obx(() => _authController.isLoading.value
                             ? const Center(child: CircularProgressIndicator())
@@ -74,15 +99,15 @@ class _ForgetPageState extends State<ForgetPage> {
                                 pressed: () {
                                   if (_formKey.currentState?.validate() ??
                                       false) {
-                                    _authController.sendPasswordResetEmail(
-                                      _email.text.trim(),
+                                    _authController.updatePassword(
+                                      _passwordController.text.trim(),
                                     );
                                   }
                                 },
                                 bgColor: colorScheme(context).primary,
                                 width: 1.sw,
                                 child: Text(
-                                  " Continue",
+                                  "Reset Password",
                                   style: textTheme(context).bodyMedium,
                                 ),
                               )),

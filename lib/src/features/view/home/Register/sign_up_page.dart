@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:todo_app/src/common/widgets/custom_button.dart';
@@ -47,8 +48,8 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Center(
               child: Container(
                 margin: EdgeInsets.symmetric(
-                  horizontal: Get.width * 0.05,
-                  vertical: Get.height * 0.05,
+                  horizontal: 0.05.sw,
+                  vertical: 0.05.sh,
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -56,27 +57,27 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     Text("Create Account",
                         style: textTheme(context).titleMedium?.copyWith(
-                            fontSize: 24,
+                            fontSize: 24.sp,
                             color: colorScheme(context).onSecondary)),
                     Text(
                       "Become New User",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: const Color(0xFF878787),
-                          fontSize: 16,
+                          fontSize: 16.sp,
                           fontWeight: FontWeight.normal),
                     ),
-                    const SizedBox(height: 30),
+                    SizedBox(height: 30.h),
                     Center(
                       child: Stack(
                         children: [
                           CircleAvatar(
-                            radius: 50,
+                            radius: 50.r,
                             backgroundColor: Colors.grey[200],
                             backgroundImage:
                                 _image != null ? FileImage(_image!) : null,
                             child: _image == null
-                                ? const Icon(Icons.person,
-                                    size: 50, color: Colors.grey)
+                                ? Icon(Icons.person,
+                                    size: 50.sp, color: Colors.grey)
                                 : null,
                           ),
                           Positioned(
@@ -85,17 +86,17 @@ class _RegisterPageState extends State<RegisterPage> {
                             child: GestureDetector(
                               onTap: _pickImage,
                               child: CircleAvatar(
-                                radius: 18,
+                                radius: 18.r,
                                 backgroundColor: colorScheme(context).primary,
-                                child: const Icon(Icons.camera_alt,
-                                    size: 18, color: Colors.white),
+                                child: Icon(Icons.camera_alt,
+                                    size: 18.sp, color: Colors.white),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30),
+                    SizedBox(height: 30.h),
                     Form(
                       key: _formKey,
                       child: Column(
@@ -109,7 +110,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             validator: validateData,
                             controller: _user,
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           CustomTextFormField(
                             maxLines: 1,
                             icon: const Icon(Icons.email_outlined),
@@ -118,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             controller: _email,
                             validator: validateEmail,
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           OverflowBar(
                             spacing: 4.0,
                             alignment: MainAxisAlignment.start,
@@ -149,7 +150,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                          SizedBox(height: 20.h),
                           Obx(() => _authController.isLoading.value
                               ? const Center(child: CircularProgressIndicator())
                               : CustomButton(
@@ -165,14 +166,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                     }
                                   },
                                   bgColor: colorScheme(context).primary,
-                                  width: Get.width,
+                                  width: 1.sw,
                                   child: Text(
                                     "Register",
                                     style: textTheme(context).bodyMedium,
                                   ),
                                 )),
                           SizedBox(
-                            height: Get.height * 0.025,
+                            height: 0.025.sh,
                           ),
                           Center(
                             child: Text.rich(TextSpan(children: [

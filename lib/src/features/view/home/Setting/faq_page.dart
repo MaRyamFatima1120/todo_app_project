@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../common/constants/app_color.dart';
@@ -22,7 +23,7 @@ class _FAQPageState extends State<FAQPage> {
         centerTitle: true,
         title: Text("FAQs ",
             style: textTheme(context).titleSmall?.copyWith(
-                fontSize: 19,
+                fontSize: 19.sp,
                 fontWeight: FontWeight.w600,
                 color: AppColor.greyColor)),
       ),
@@ -50,7 +51,7 @@ class _FAQPageState extends State<FAQPage> {
               return Card(
                 elevation: 0.0,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: Theme(
                   data: Theme.of(context)

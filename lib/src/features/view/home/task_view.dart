@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/common/widgets/drawer_widget.dart';
 import 'package:todo_app/src/features/view-model/profile_page_controller.dart';
@@ -75,11 +76,11 @@ class _TaskViewState extends State<TaskView> {
                               icon: const Icon(Icons.short_text),
                             ),
                             SizedBox(
-                              width: Get.width * 0.6,
+                              width: 0.6.sw,
                             ),
                             Obx(
                               () => CircleAvatar(
-                                radius: 25,
+                                radius: 25.r,
                                 backgroundColor:
                                     profileController.avatarUrl.value.isEmpty
                                         ? controller.getIconColor(2)
@@ -104,7 +105,7 @@ class _TaskViewState extends State<TaskView> {
                                         style: textTheme(context)
                                             .titleMedium
                                             ?.copyWith(
-                                                color: Colors.white, fontSize: 20),
+                                                color: Colors.white, fontSize: 20.sp),
                                       )
                                     : null,
                               ),
@@ -112,7 +113,7 @@ class _TaskViewState extends State<TaskView> {
                           ],
                         ),
                         SizedBox(
-                          height: Get.height * 0.01,
+                          height: 0.01.sh,
                         ),
                         Text(
                           "My Task",
@@ -129,7 +130,7 @@ class _TaskViewState extends State<TaskView> {
                                   .withValues(alpha: 0.7)),
                         ),
                         SizedBox(
-                          height: Get.height * 0.04,
+                          height: 0.04.sh,
                         ),
                         SearchBar(
                           focusNode: _focusNode,
@@ -137,7 +138,7 @@ class _TaskViewState extends State<TaskView> {
                               const EdgeInsets.symmetric(
                                   vertical: 10.0, horizontal: 16.0)),
                           shape: WidgetStateProperty.all(RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                            borderRadius: BorderRadius.circular(10.0.r),
                             // Border color
                           )),
                           hintText: "Search...",
@@ -153,7 +154,7 @@ class _TaskViewState extends State<TaskView> {
                               textTheme(context).bodySmall),
                         ),
                         SizedBox(
-                          height: Get.height * 0.03,
+                          height: 0.03.sh,
                         ),
                       ],
                     ),
@@ -212,11 +213,11 @@ class _TaskViewState extends State<TaskView> {
                           int displayNumber = index + 1;
                           return ListTile(
                             leading: Container(
-                              width: Get.width * 0.16,
-                              height: Get.height * 0.07,
+                              width: 0.16.sw,
+                              height: 0.07.sh,
                               decoration: BoxDecoration(
                                   color: controller.getIconColor(index),
-                                  borderRadius: BorderRadius.circular(10.0)),
+                                  borderRadius: BorderRadius.circular(10.0.r)),
                               child: Center(
                                   child: Text(
                                     "$displayNumber",
@@ -232,7 +233,7 @@ class _TaskViewState extends State<TaskView> {
                             subtitle: Text(
                               item['description'],
                               style: textTheme(context).titleSmall?.copyWith(
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   color: colorScheme(context)
                                       .onSecondary
                                       .withValues(alpha: 0.7),

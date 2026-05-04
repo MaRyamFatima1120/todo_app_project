@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../common/utils/global_variable.dart';
 import '../../../../common/utils/validation.dart';
@@ -27,7 +28,7 @@ class _LoginPageState extends State<LoginPage> {
         child: Scaffold(
             body: SingleChildScrollView(
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: Get.width * 0.05),
+        margin: EdgeInsets.symmetric(horizontal: 0.05.sw),
         child: Flex(
           direction: Axis.vertical,
           mainAxisAlignment: MainAxisAlignment.start,
@@ -35,8 +36,8 @@ class _LoginPageState extends State<LoginPage> {
             Image.asset(
               "assets/images/person.png",
               fit: BoxFit.fitHeight,
-              width: Get.width,
-              height: Get.height * 0.5,
+              width: 1.sw,
+              height: 0.5.sh,
               filterQuality: FilterQuality.high,
             ),
             Form(
@@ -53,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _email,
                     validator: validateEmail,
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20.h),
                   CustomTextFormField(
                     icon: const Icon(Icons.key),
                     maxLines: 1,
@@ -95,14 +96,14 @@ class _LoginPageState extends State<LoginPage> {
                             }
                           },
                           bgColor: colorScheme(context).primary,
-                          width: Get.width,
+                          width: 1.sw,
                           child: Text(
                             "Log in",
                             style: textTheme(context).bodyMedium,
                           ),
                         )),
                   SizedBox(
-                    height: Get.height * 0.025,
+                    height: 0.025.sh,
                   ),
                   Center(
                     child: Text.rich(TextSpan(children: [

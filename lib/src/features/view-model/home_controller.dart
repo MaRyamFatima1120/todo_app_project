@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../common/constants/app_color.dart';
 import '../../common/utils/supabase_service.dart';
+import '../../common/utils/notification_service.dart';
+import '../../common/utils/snack_bar_custom.dart';
 
 class HomeController extends GetxController {
   final SupabaseService _supabaseService = SupabaseService();
@@ -15,7 +17,8 @@ class HomeController extends GetxController {
   var description = ''.obs;
   var time = ''.obs;
   var filteredTask = "all".obs;
-
+  var reminderTime = Rxn<DateTime>();
+  final NotificationService _notificationService = NotificationService();
 
   //Observable List to hold data
   RxList<Map<String, dynamic>> addData = <Map<String, dynamic>>[].obs;
@@ -33,8 +36,8 @@ class HomeController extends GetxController {
     searchQuery.value = query.toLowerCase();
     searchData.value = addData
         .where((item) =>
-    item['title'].toLowerCase().contains(searchQuery.value) ||
-        item['description'].toLowerCase().contains(searchQuery.value))
+            item['title'].toLowerCase().contains(searchQuery.value) ||
+            item['description'].toLowerCase().contains(searchQuery.value))
         .toList();
     debugPrint("Search Query:${searchQuery.value}");
   }
@@ -60,17 +63,30 @@ class HomeController extends GetxController {
         'title': title.value,
         'description': description.value,
         'timeStamp': DateTime.now().toIso8601String(),
-        'completed': false
+        'completed': false,
+        'reminder_time': reminderTime.value?.toIso8601String(),
       };
 
       // Save to Supabase
       final savedTask = await _supabaseService.addTask(newTask);
-      
+
       if (savedTask != null) {
         addData.add(savedTask);
         searchData.value = addData;
+
+        // Schedule notification if reminderTime is set
+        if (reminderTime.value != null) {
+          await _notificationService.scheduleTaskReminder(
+            id: savedTask['id'].hashCode,
+            title: "Task Reminder: ${savedTask['title']}",
+            body: savedTask['description'],
+            scheduledTime: reminderTime.value!,
+          );
+        }
+
         clearFormField();
         await updateSharedPreference(); // Keep local sync for offline
+        _scheduleDailyDigest();
       }
     } else {
       debugPrint("Field is Empty!");
@@ -81,18 +97,20 @@ class HomeController extends GetxController {
   void clearFormField() {
     title.value = '';
     description.value = '';
+    reminderTime.value = null;
   }
 
 //Completed Task
   void toggleTaskCompletion(dynamic taskId) async {
     try {
       // Find the task by id
-      var taskIndex = addData.indexWhere((task) => task['id'].toString() == taskId.toString());
+      var taskIndex = addData
+          .indexWhere((task) => task['id'].toString() == taskId.toString());
       if (taskIndex == -1) return;
 
       var task = addData[taskIndex];
       bool newStatus = !(task['completed'] ?? false);
-      
+
       // 1. Update UI Immediately (Local)
       task['completed'] = newStatus;
       addData.refresh();
@@ -101,20 +119,19 @@ class HomeController extends GetxController {
       update();
 
       // 2. Update Supabase
-      await _supabaseService.updateTask(taskId.toString(), {'completed': newStatus});
-      
+      await _supabaseService
+          .updateTask(taskId.toString(), {'completed': newStatus});
+
       // 3. Update Local Storage
       await updateSharedPreference();
-      
+      _scheduleDailyDigest();
+
       debugPrint("Successfully toggled task: $taskId to $newStatus");
     } catch (e) {
       debugPrint("Error toggling task: $e");
-      Get.snackbar(
-        "Database Error",
+      CustomSnackBar.error(
         "Failed to update task. Please check your connection or SQL setup.",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.withValues(alpha: 0.8),
-        colorText: Colors.white,
+        title: "Database Error",
       );
     }
   }
@@ -122,8 +139,9 @@ class HomeController extends GetxController {
   //Retrieve Data
   Future<void> loadData() async {
     // Try to load from Supabase first
-    List<Map<String, dynamic>> supabaseTasks = await _supabaseService.getTasks();
-    
+    List<Map<String, dynamic>> supabaseTasks =
+        await _supabaseService.getTasks();
+
     if (supabaseTasks.isNotEmpty) {
       addData.value = supabaseTasks;
       searchData.value = addData;
@@ -149,13 +167,17 @@ class HomeController extends GetxController {
 //Delete Data
   void deleteData(int index) async {
     String taskId = addData[index]['id'].toString();
-    
+
     // Delete from Supabase
     await _supabaseService.deleteTask(taskId);
-    
+
+    // Cancel notification
+    _notificationService.cancelNotification(taskId.hashCode);
+
     addData.removeAt(index);
     updateSharedPreference();
     searchData.value = addData;
+    _scheduleDailyDigest();
   }
 
   @override
@@ -163,28 +185,48 @@ class HomeController extends GetxController {
     super.onInit();
     loadData().then((_) {
       taskSearchData.value = getFilteredTasks(); // Initialize with all tasks
+      _scheduleDailyDigest();
     });
+  }
+
+  void _scheduleDailyDigest() {
+    int pendingCount = getTasksByFilter('pending').length;
+    _notificationService.scheduleDailyDigest(pendingCount);
   }
 
   //editTask
   void editTask(int index, String newTitle, String newDescription) async {
     String taskId = addData[index]['id'].toString();
     String timeStamp = DateTime.now().toIso8601String();
-    
+
     final updates = {
       'title': newTitle,
       'description': newDescription,
       'timeStamp': timeStamp,
+      'reminder_time': reminderTime.value?.toIso8601String(),
     };
 
     // Update Supabase
     await _supabaseService.updateTask(taskId, updates);
 
+    // Reschedule notification if needed
+    if (reminderTime.value != null) {
+      await _notificationService.cancelNotification(taskId.hashCode);
+      await _notificationService.scheduleTaskReminder(
+        id: taskId.hashCode,
+        title: "Updated Task: $newTitle",
+        body: newDescription,
+        scheduledTime: reminderTime.value!,
+      );
+    }
+
     addData[index]['title'] = newTitle;
     addData[index]['description'] = newDescription;
     addData[index]['timeStamp'] = timeStamp;
+    addData[index]['reminder_time'] = reminderTime.value?.toIso8601String();
     addData.refresh();
     updateSharedPreference();
+    clearFormField();
     update();
   }
 
@@ -205,7 +247,8 @@ class HomeController extends GetxController {
         return addData.where((task) {
           try {
             final taskDate = DateTime.parse(task['timeStamp']);
-            return taskDate.isAfter(DateTime.now().subtract(const Duration(minutes: 30)));
+            return taskDate
+                .isAfter(DateTime.now().subtract(const Duration(minutes: 30)));
           } catch (e) {
             return false;
           }
@@ -278,5 +321,4 @@ class HomeController extends GetxController {
         date1.month == date2.month &&
         date1.day == date2.day;
   }
-
 }

@@ -1,18 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../common/utils/global_variable.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../common/utils/supabase_service.dart';
+import '../../common/utils/snack_bar_custom.dart';
 
 class ProfilePageController extends GetxController {
   final SupabaseService _supabaseService = SupabaseService();
 
   var firstImageUrl = Rx<String?>(null);
   var secondImageUrl = Rx<String?>(null);
-  var coverUrl = "".obs; 
+  var coverUrl = "".obs;
   var avatarUrl = "".obs;
   final ImagePicker imagePicker = ImagePicker();
 
@@ -75,22 +77,16 @@ class ProfilePageController extends GetxController {
       if (user != null) {
         await _supabaseService.updateProfileName(user.id, name);
         userName.value = name;
-        
+
         // Update local cache
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', name);
-        
-        Get.snackbar("Success", "Account name updated successfully!",
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green,
-            colorText: Colors.white);
+
+        CustomSnackBar.success("Account name updated successfully!");
       }
     } catch (e) {
       debugPrint('Error updating name: $e');
-      Get.snackbar("Error", "Failed to update name: $e",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      CustomSnackBar.error("Failed to update name: $e");
     } finally {
       isLoading.value = false;
     }
@@ -102,16 +98,10 @@ class ProfilePageController extends GetxController {
       isLoading.value = true;
       await Supabase.instance.client.auth
           .updateUser(UserAttributes(password: password));
-      Get.snackbar("Success", "Password updated successfully!",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white);
+      CustomSnackBar.success("Password updated successfully!");
     } catch (e) {
       debugPrint('Error updating password: $e');
-      Get.snackbar("Error", "Failed to update password: $e",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+      CustomSnackBar.error("Failed to update password: $e");
     } finally {
       isLoading.value = false;
     }
@@ -128,13 +118,13 @@ class ProfilePageController extends GetxController {
         isLoading.value = true;
         final user = _supabaseService.currentUser;
         if (user == null) {
-          Get.snackbar("Error", "User not logged in!");
+          CustomSnackBar.error("User not logged in!");
           return;
         }
 
         final file = File(pickedFile.path);
         debugPrint('Uploading cover for user: ${user.id}');
-        
+
         final newUrl = await _supabaseService.uploadCover(user.id, file);
 
         if (newUrl != null) {
@@ -142,18 +132,18 @@ class ProfilePageController extends GetxController {
           await _supabaseService.updateProfileCover(user.id, newUrl);
           coverUrl.value = newUrl;
           secondImageUrl.value = pickedFile.path;
-          
+
           // Save to local storage
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('cached_cover_url', newUrl);
-          
-          Get.snackbar("Success", "Background image updated!");
+
+          CustomSnackBar.success("Background image updated!");
         } else {
-          Get.snackbar("Error", "Failed to upload image to Storage.");
+          CustomSnackBar.error("Failed to upload image to Storage.");
         }
       } catch (e) {
         debugPrint('Error updating cover: $e');
-        Get.snackbar("Error", "Something went wrong: $e");
+        CustomSnackBar.error("Something went wrong: $e");
       } finally {
         isLoading.value = false;
       }
@@ -176,12 +166,12 @@ class ProfilePageController extends GetxController {
             await _supabaseService.updateProfileAvatar(user.id, newUrl);
             avatarUrl.value = newUrl;
             firstImageUrl.value = pickedFile.path;
-            
+
             // Save to local storage
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('cached_avatar_url', newUrl);
-            
-            Get.snackbar("Success", "Profile image updated!");
+
+            CustomSnackBar.success("Profile image updated!");
           }
         }
       } catch (e) {
@@ -196,20 +186,29 @@ class ProfilePageController extends GetxController {
   Future<void> deleteAccount(BuildContext context) async {
     // Professional Confirmation Dialog
     Get.defaultDialog(
-      title: "Delete Account",
-      titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-      middleText: "Are you sure you want to delete your account? All your tasks and profile data will be permanently removed.",
-      middleTextStyle: const TextStyle(fontSize: 14),
+      titleStyle: textTheme(context).bodyLarge?.copyWith(
+            color: colorScheme(context).primary,
+            fontSize: 22.sp,
+            fontWeight: FontWeight.bold,
+          ),
+      middleText:
+          "Are you sure you want to delete your account? All your tasks and profile data will be permanently removed.",
+      middleTextStyle: textTheme(context).bodySmall?.copyWith(
+            color: Colors.grey[600],
+            fontSize: 14.sp,
+          ),
       backgroundColor: Colors.white,
-      radius: 15,
-      contentPadding: const EdgeInsets.all(20),
+      radius: 20.r,
+      contentPadding: EdgeInsets.all(25.r),
       cancel: OutlinedButton(
         onPressed: () => Get.back(),
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.grey),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          side: BorderSide(color: Colors.grey[300]!),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         ),
-        child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+        child: Text("Cancel", style: TextStyle(color: Colors.grey[600], fontSize: 14.sp)),
       ),
       confirm: ElevatedButton(
         onPressed: () async {
@@ -218,45 +217,27 @@ class ProfilePageController extends GetxController {
             isLoading.value = true;
             final user = _supabaseService.currentUser;
             if (user != null) {
-              // 1. Delete all user data from Supabase
               await _supabaseService.deleteUserAccount(user.id);
-              
-              // 2. Sign Out
               await _supabaseService.signOut();
-              
-              // 3. Clear Local Storage
               SharedPreferences prefs = await SharedPreferences.getInstance();
               await prefs.clear();
-              
-              // 4. Success Message & Redirect
-              Get.snackbar(
-                "Account Deleted", 
-                "Your account has been successfully removed.",
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.black87,
-                colorText: Colors.white,
-                icon: const Icon(Icons.delete_forever, color: Colors.red),
-              );
-              
+              CustomSnackBar.error("Your account has been successfully removed.", title: "Account Deleted");
               Get.offAllNamed("/loginPage");
             }
           } catch (e) {
-            Get.snackbar(
-              "Error", 
-              "Failed to delete account. Please try again later.",
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-            );
+            CustomSnackBar.error("Failed to delete account. Please try again later.");
           } finally {
             isLoading.value = false;
           }
         },
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          backgroundColor: colorScheme(context).primary,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+          elevation: 0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         ),
-        child: const Text("Delete", style: TextStyle(color: Colors.white)),
+        child: Text("Delete", style: TextStyle(color: Colors.white, fontSize: 14.sp)),
       ),
     );
   }

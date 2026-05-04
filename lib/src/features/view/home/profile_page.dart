@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_app/src/features/view-model/profile_page_controller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../common/constants/app_color.dart';
 import '../../../common/constants/app_icon.dart';
 import '../../../common/utils/global_variable.dart';
@@ -39,8 +40,8 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 Obx(
                   () => Container(
-                    width: Get.width,
-                    height: Get.height * 0.35,
+                    width: 1.sw,
+                    height: 0.35.sh,
                     decoration: BoxDecoration(
                       gradient: homeController.getGradient(2),
                     ),
@@ -48,7 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ? CachedNetworkImage(
                             imageUrl: profileController.coverUrl.value,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) => const SizedBox.shrink(),
+                            placeholder: (context, url) =>
+                                const SizedBox.shrink(),
                             errorWidget: (context, url, error) => Container(
                               decoration: BoxDecoration(
                                 gradient: homeController.getGradient(2),
@@ -64,13 +66,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 Positioned(
-                    bottom: 10.0,
-                    right: 30,
+                    bottom: 10.h,
+                    right: 30.w,
                     child: CircleAvatar(
-                      radius: 20,
+                      radius: 20.r,
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
-                        radius: 18,
+                        radius: 18.r,
                         backgroundColor: Colors.white.withValues(alpha: 0.5),
                         child: IconButton(
                             onPressed: () {
@@ -78,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             },
                             icon: Icon(
                               Icons.camera_alt_rounded,
-                              size: 20,
+                              size: 20.sp,
                               color: colorScheme(context)
                                   .onSecondary
                                   .withValues(alpha: 0.7),
@@ -86,25 +88,26 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     )),
                 Positioned(
-                  bottom: -30,
-                  left: 10,
+                  bottom: -30.h,
+                  left: 10.w,
                   child: Obx(
                     () => CircleAvatar(
-                      radius: 62,
+                      radius: 62.r,
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
-                        radius: 60,
-                        backgroundColor: profileController.avatarUrl.value.isEmpty
-                            ? homeController.getIconColor(2)
-                            : Colors.white,
-                        backgroundImage: profileController
-                                .avatarUrl.value.isNotEmpty
-                            ? CachedNetworkImageProvider(
-                                profileController.avatarUrl.value)
-                            : (profileController.firstImageUrl.value != null
-                                ? FileImage(File(
-                                    profileController.firstImageUrl.value!))
-                                : null),
+                        radius: 60.r,
+                        backgroundColor:
+                            profileController.avatarUrl.value.isEmpty
+                                ? homeController.getIconColor(2)
+                                : Colors.white,
+                        backgroundImage:
+                            profileController.avatarUrl.value.isNotEmpty
+                                ? CachedNetworkImageProvider(
+                                    profileController.avatarUrl.value)
+                                : (profileController.firstImageUrl.value != null
+                                    ? FileImage(File(
+                                        profileController.firstImageUrl.value!))
+                                    : null),
                         child: profileController.avatarUrl.value.isEmpty &&
                                 profileController.firstImageUrl.value == null
                             ? Text(
@@ -114,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     : '',
                                 style: textTheme(context).titleMedium?.copyWith(
                                       color: Colors.white,
-                                      fontSize: 40,
+                                      fontSize: 40.sp,
                                     ),
                               )
                             : null,
@@ -123,13 +126,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 Positioned(
-                    bottom: -25,
-                    left: 90,
+                    bottom: -25.h,
+                    left: 90.w,
                     child: CircleAvatar(
-                      radius: 20,
+                      radius: 20.r,
                       backgroundColor: Colors.white,
                       child: CircleAvatar(
-                          radius: 18,
+                          radius: 18.r,
                           backgroundColor: Colors.white.withValues(alpha: 0.6),
                           child: IconButton(
                             onPressed: () {
@@ -137,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             },
                             icon: Icon(
                               Icons.camera_alt_rounded,
-                              size: 22,
+                              size: 22.sp,
                               color: colorScheme(context)
                                   .onSecondary
                                   .withValues(alpha: 0.7),
@@ -148,8 +151,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 15.0, vertical: 50.0),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 15.w, vertical: 50.h),
                 children: [
                   Obx(
                     () => Center(
@@ -174,11 +177,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   SizedBox(
-                    height: Get.height * 0.035,
+                    height: 0.035.sh,
                   ),
                   Text("Account",
                       style: textTheme(context).titleSmall?.copyWith(
-                          fontSize: 19,
+                          fontSize: 19.sp,
                           fontWeight: FontWeight.w600,
                           color: AppColor.greyColor)),
                   CustomListTile(
@@ -187,10 +190,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icon(
                       Icons.arrow_forward_ios,
                       color: AppColor.greyColor,
-                      size: 20,
+                      size: 20.sp,
                     ),
                     onTap: () {
-                      final userController = TextEditingController(text: profileController.userName.value);
+                      final userController = TextEditingController(
+                          text: profileController.userName.value);
                       Get.defaultDialog(
                         barrierDismissible: false,
                         title: "Change Account Name",
@@ -200,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         content: Form(
                           key: _formKey,
                           child: SizedBox(
-                            width: Get.width * 0.6,
+                            width: 0.6.sw,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -223,16 +227,16 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Text(
                               "Cancel",
                               style: textTheme(context).titleSmall?.copyWith(
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                   color: colorScheme(context).primary),
                             ),
                           ),
                           SizedBox(
-                            width: Get.width * 0.005,
+                            width: 0.005.sw,
                           ),
                           CustomButton(
-                            width: 100,
-                            height: 40,
+                            width: 100.w,
+                            height: 40.h,
                             pressed: () {
                               if (_formKey.currentState!.validate()) {
                                 profileController
@@ -245,7 +249,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               "Save",
                               style: textTheme(context)
                                   .titleSmall
-                                  ?.copyWith(fontSize: 16, color: Colors.white),
+                                  ?.copyWith(fontSize: 16.sp, color: Colors.white),
                             ),
                           ),
                         ],
@@ -258,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     icon: Icon(
                       Icons.arrow_forward_ios,
                       color: AppColor.greyColor,
-                      size: 20,
+                      size: 20.sp,
                     ),
                     onTap: () {
                       final passwordController = TextEditingController();
@@ -271,7 +275,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         content: Form(
                           key: _formKey,
                           child: SizedBox(
-                            width: Get.width * 0.6,
+                            width: 0.6.sw,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -294,16 +298,16 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Text(
                               "Cancel",
                               style: textTheme(context).titleSmall?.copyWith(
-                                  fontSize: 16,
+                                  fontSize: 16.sp,
                                   color: colorScheme(context).primary),
                             ),
                           ),
                           SizedBox(
-                            width: Get.width * 0.005,
+                            width: 0.005.sw,
                           ),
                           CustomButton(
-                            width: 100,
-                            height: 40,
+                            width: 100.w,
+                            height: 40.h,
                             pressed: () {
                               if (_formKey.currentState!.validate()) {
                                 profileController.updateUserPassword(
@@ -316,50 +320,27 @@ class _ProfilePageState extends State<ProfilePage> {
                               "Save",
                               style: textTheme(context)
                                   .titleSmall
-                                  ?.copyWith(fontSize: 16, color: Colors.white),
+                                  ?.copyWith(fontSize: 16.sp, color: Colors.white),
                             ),
                           ),
                         ],
                       );
                     },
                   ),
-                  const Divider(height: 30, thickness: 0.5),
-                  ListTile(
-                    onTap: () => profileController.deleteAccount(context),
-                    leading: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: SvgPicture.asset(
-                        AppIcon.logoutIcon,
-                        width: 20,
-                        height: 20,
-                        colorFilter: const ColorFilter.mode(
-                            AppColor.redColor, BlendMode.srcIn),
-                      ),
-                    ),
-                    title: Text(
-                      'Delete Account',
-                      style: textTheme(context).titleSmall?.copyWith(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColor.redColor,
-                          ),
-                    ),
-                    subtitle: Text(
-                      'Permanently remove your account data',
-                      style: textTheme(context).bodySmall?.copyWith(
-                            fontSize: 12,
-                            color: AppColor.greyColor,
-                          ),
-                    ),
-                    trailing: const Icon(
+                  CustomListTile(
+                    title: 'Delete Account',
+                    svgIconPath: AppIcon.logoutIcon,
+                    iconColor: AppColor.redColor,
+                    titleStyle: textTheme(context).titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColor.redColor,
+                        ),
+                    icon: Icon(
                       Icons.arrow_forward_ios,
                       color: AppColor.redColor,
-                      size: 16,
+                      size: 16.sp,
                     ),
+                    onTap: () => profileController.deleteAccount(context),
                   ),
                 ],
               ),
