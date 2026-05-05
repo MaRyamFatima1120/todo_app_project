@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:todo_app/src/common/utils/supabase_service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../common/utils/supabase_service.dart';
 import 'profile_page_controller.dart';
 import 'auth_controller.dart';
 
@@ -44,7 +45,7 @@ class SplashController extends GetxController {
       Permission.storage,
     ].request();
 
-    print("Permission Statuses: $statuses");
+    debugPrint("Permission Statuses: $statuses");
   }
 
   void checkUserLogin() async {

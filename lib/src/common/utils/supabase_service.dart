@@ -16,7 +16,7 @@ class SupabaseService {
 
       final response = await _supabase
           .from(_tableName)
-          .select('id, title, description, "timeStamp", completed, user_id')
+          .select('id, title, description, "timeStamp", completed, user_id, reminder_time')
           .eq('user_id', user.id)
           .order('id', ascending: false);
       return List<Map<String, dynamic>>.from(response);
@@ -24,6 +24,18 @@ class SupabaseService {
       debugPrint('Error fetching tasks: $e');
       return [];
     }
+  }
+
+  // Get tasks stream for real-time updates
+  Stream<List<Map<String, dynamic>>> getTasksStream() {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return Stream.value([]);
+
+    return _supabase
+        .from(_tableName)
+        .stream(primaryKey: ['id'])
+        .eq('user_id', user.id)
+        .order('id', ascending: false);
   }
 
   // Add a task
@@ -136,8 +148,6 @@ class SupabaseService {
       final String path = '$userId.png';
 
       // Upload bytes to 'avatars' bucket
-      final bytes = await file.readAsBytes();
-
       await _supabase.storage.from('avatars').upload(
             path,
             file, // Try passing the file directly again with the correct path

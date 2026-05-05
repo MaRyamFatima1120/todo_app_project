@@ -30,9 +30,7 @@ class _ForgetPageState extends State<ForgetPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? savedEmail = prefs.getString('email');
     if (savedEmail != null && savedEmail.isNotEmpty) {
-      setState(() {
-        _email.text = savedEmail;
-      });
+      _email.text = savedEmail;
     }
   }
 

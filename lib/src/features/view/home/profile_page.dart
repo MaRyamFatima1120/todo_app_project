@@ -3,7 +3,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_app/src/features/view-model/profile_page_controller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../common/constants/app_color.dart';
 import '../../../common/constants/app_icon.dart';
@@ -12,8 +11,8 @@ import '../../../common/utils/validation.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_textform.dart';
 import '../../../common/widgets/drawer_widget.dart';
-import 'package:flutter_svg/svg.dart';
 import '../../view-model/home_controller.dart';
+import '../../view-model/profile_page_controller.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

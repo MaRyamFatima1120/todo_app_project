@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:todo_app/src/routes/route.dart';
-import 'package:todo_app/src/themes/theme.dart';
+import 'package:taskify/src/common/constants/supabase_constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:todo_app/src/common/constants/supabase_constants.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:todo_app/src/common/utils/notification_service.dart';
+import 'package:taskify/src/common/utils/notification_service.dart';
+import 'package:taskify/src/routes/route.dart';
+import 'package:taskify/src/themes/theme.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

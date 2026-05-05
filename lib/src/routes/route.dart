@@ -1,17 +1,18 @@
 import 'package:get/get.dart';
-import 'package:todo_app/src/features/view/home/Register/forget_page.dart';
-import 'package:todo_app/src/features/view/home/Register/login_page.dart';
-import 'package:todo_app/src/features/view/home/Register/sign_up_page.dart';
-import 'package:todo_app/src/features/view/home/Setting/about_us.dart';
-import 'package:todo_app/src/features/view/home/Setting/faq_page.dart';
-import 'package:todo_app/src/features/view/home/view_page.dart';
-import 'package:todo_app/src/features/view/splash_page.dart';
+
+import '../features/view/home/Register/forget_page.dart';
+import '../features/view/home/Register/login_page.dart';
+import '../features/view/home/Register/sign_up_page.dart';
+import '../features/view/home/Setting/about_us.dart';
+import '../features/view/home/Setting/faq_page.dart';
 import '../features/view/home/Setting/help_feedback_page.dart';
 import '../features/view/home/Register/reset_password_page.dart';
 import '../features/view/home/home_page.dart';
 
 import '../features/view/home/task_view.dart';
+import '../features/view/home/view_page.dart';
 import '../features/view/main_page.dart';
+import '../features/view/splash_page.dart';
 
 class MyAppRouter {
   static final router = [

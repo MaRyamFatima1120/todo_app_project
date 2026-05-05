@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -19,6 +20,9 @@ class HomeController extends GetxController {
   var filteredTask = "all".obs;
   var reminderTime = Rxn<DateTime>();
   final NotificationService _notificationService = NotificationService();
+
+  // Stream subscription for clean up
+  StreamSubscription<List<Map<String, dynamic>>>? _taskSubscription;
 
   //Observable List to hold data
   RxList<Map<String, dynamic>> addData = <Map<String, dynamic>>[].obs;
@@ -58,7 +62,10 @@ class HomeController extends GetxController {
   Future<void> saveData() async {
     if (title.value.isNotEmpty && description.value.isNotEmpty) {
       final user = _supabaseService.currentUser;
+      final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+
       final newTask = {
+        'id': tempId, // Temporary ID for instant UI update
         'user_id': user?.id,
         'title': title.value,
         'description': description.value,
@@ -67,26 +74,51 @@ class HomeController extends GetxController {
         'reminder_time': reminderTime.value?.toIso8601String(),
       };
 
-      // Save to Supabase
-      final savedTask = await _supabaseService.addTask(newTask);
+      // 1. Instant UI Update (Add to local list immediately)
+      addData.insert(0, newTask); // Insert at the top for better visibility
+      searchData.value = List.from(addData);
+      onChangedFunction(searchQuery.value); // Update search list if active
+      clearFormField();
 
-      if (savedTask != null) {
-        addData.add(savedTask);
-        searchData.value = addData;
+      try {
+        // 2. Background Sync to Supabase
+        final syncTask = {
+          'user_id': newTask['user_id'],
+          'title': newTask['title'],
+          'description': newTask['description'],
+          'timeStamp': newTask['timeStamp'],
+          'completed': newTask['completed'],
+          'reminder_time': newTask['reminder_time'],
+        };
 
-        // Schedule notification if reminderTime is set
-        if (reminderTime.value != null) {
-          await _notificationService.scheduleTaskReminder(
-            id: savedTask['id'].hashCode,
-            title: "Task Reminder: ${savedTask['title']}",
-            body: savedTask['description'],
-            scheduledTime: reminderTime.value!,
-          );
+        final savedTask = await _supabaseService.addTask(syncTask);
+
+        if (savedTask != null) {
+          // Replace temp task with the real one from database (to get real ID)
+          int index = addData.indexWhere((task) => task['id'] == tempId);
+          if (index != -1) {
+            addData[index] = savedTask;
+            addData.refresh();
+            searchData.value = List.from(addData);
+          }
+
+          // Schedule notification if reminderTime is set
+          if (reminderTime.value != null) {
+            await _notificationService.scheduleTaskReminder(
+              id: savedTask['id'].hashCode,
+              title: "Task Reminder: ${savedTask['title']}",
+              body: savedTask['description'],
+              scheduledTime: reminderTime.value!,
+            );
+          }
+
+          await updateSharedPreference();
+          _scheduleDailyDigest();
+          debugPrint("Task synced successfully with Supabase");
         }
-
-        clearFormField();
-        await updateSharedPreference(); // Keep local sync for offline
-        _scheduleDailyDigest();
+      } catch (e) {
+        debugPrint("Error syncing task: $e");
+        // Optionally show a "Sync failed" indicator or retry logic
       }
     } else {
       debugPrint("Field is Empty!");
@@ -183,8 +215,23 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadData().then((_) {
-      taskSearchData.value = getFilteredTasks(); // Initialize with all tasks
+    _startRealtimeListener();
+    _scheduleDailyDigest();
+  }
+
+  @override
+  void onClose() {
+    _taskSubscription?.cancel();
+    super.onClose();
+  }
+
+  void _startRealtimeListener() {
+    _taskSubscription = _supabaseService.getTasksStream().listen((tasks) {
+      addData.value = tasks;
+      searchData.value = List.from(tasks);
+      onChangedFunction(searchQuery.value); // Keep search in sync
+      taskSearchData.value = getFilteredTasks(); // Keep filters in sync
+      updateSharedPreference(); // Sync local storage for offline use
       _scheduleDailyDigest();
     });
   }

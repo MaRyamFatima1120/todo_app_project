@@ -32,12 +32,12 @@ class FilterChipWidget extends StatelessWidget {
         backgroundColor: Colors.white,
         side: BorderSide.none,
         onSelected: (isSelected) {
-          controller.filterSelected(isSelected, chipName);
           if (isSelected) {
+            controller.filterSelected(isSelected, chipName);
             onSelectedFilter(chipName.toLowerCase()); // Trigger the callback
-          } else {
-            onSelectedFilter('all'); // Reset filter when unselected
           }
+          // If isSelected is false (user clicked an already active chip),
+          // we do nothing so it remains selected (Sticky behavior).
         },
 
         selectedColor: colorScheme(context).primary,

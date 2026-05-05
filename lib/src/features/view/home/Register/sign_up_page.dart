@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:todo_app/src/common/widgets/custom_button.dart';
-import '../../../../common/constants/app_color.dart';
 import '../../../../common/utils/global_variable.dart';
 import '../../../../common/utils/validation.dart';
+import '../../../../common/widgets/custom_button.dart';
 import '../../../../common/widgets/custom_textform.dart';
 import '../../../view-model/auth_controller.dart';
 
@@ -25,15 +24,13 @@ class _RegisterPageState extends State<RegisterPage> {
   final _password = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
   final RxBool _obscureText = true.obs;
-  File? _image;
+  final Rxn<File> _image = Rxn<File>();
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-      });
+      _image.value = File(pickedFile.path);
     }
   }
 
@@ -73,16 +70,17 @@ class _RegisterPageState extends State<RegisterPage> {
                     Center(
                       child: Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 50.r,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage:
-                                _image != null ? FileImage(_image!) : null,
-                            child: _image == null
-                                ? Icon(Icons.person,
-                                    size: 50.sp, color: Colors.grey)
-                                : null,
-                          ),
+                          Obx(() => CircleAvatar(
+                                radius: 50.r,
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage: _image.value != null
+                                    ? FileImage(_image.value!)
+                                    : null,
+                                child: _image.value == null
+                                    ? Icon(Icons.person,
+                                        size: 50.sp, color: Colors.grey)
+                                    : null,
+                              )),
                           Positioned(
                             bottom: 0,
                             right: 0,
@@ -145,7 +143,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           _email.text.trim(),
                                           _password.text.trim(),
                                           _user.text.trim(),
-                                          imageFile: _image,
+                                          imageFile: _image.value,
                                         );
                                       }
                                     },
@@ -177,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         _email.text.trim(),
                                         _password.text.trim(),
                                         _user.text.trim(),
-                                        imageFile: _image,
+                                        imageFile: _image.value,
                                       );
                                     }
                                   },

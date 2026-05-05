@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:todo_app/src/common/utils/global_variable.dart';
 
+
+import '../../../common/utils/global_variable.dart';
 import '../../../common/utils/validation.dart';
 import '../../../common/widgets/custom_button.dart';
 import '../../../common/widgets/custom_textform.dart';
@@ -171,13 +172,16 @@ class _ViewPageState extends State<ViewPage> {
                 pressed: () {
                   // Save the edited task details
                   controller.editTask(
-                      index, titleController.text, descriptionController.text,);
-                  setState(() {
-                    // Update the local variables if necessary
-                    title = titleController.text;
-                    description = descriptionController.text;
-                    time = controller.addData[index]['timeStamp'];
-                  });
+                    index,
+                    titleController.text,
+                    descriptionController.text,
+                  );
+
+                  // Update the local variables if necessary
+                  title = titleController.text;
+                  description = descriptionController.text;
+                  time = controller.addData[index]['timeStamp'];
+
                   Navigator.of(context).pop();
                 },
                 bgColor: controller.getIconColor(index),

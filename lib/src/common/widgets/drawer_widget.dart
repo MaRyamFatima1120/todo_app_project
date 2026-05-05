@@ -1,19 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_app/src/features/view-model/home_controller.dart';
-import 'package:todo_app/src/features/view-model/main_controller.dart';
-import 'package:todo_app/src/features/view-model/profile_page_controller.dart';
-import 'package:todo_app/src/common/widgets/custom_confirmation_dialog.dart';
 import '../../features/view-model/auth_controller.dart';
+import '../../features/view-model/home_controller.dart';
+import '../../features/view-model/main_controller.dart';
+import '../../features/view-model/profile_page_controller.dart';
 import '../constants/app_color.dart';
 import '../constants/app_icon.dart';
 import '../utils/global_variable.dart';
+import 'custom_confirmation_dialog.dart';
 
 class DrawerWidget extends StatefulWidget {
   const DrawerWidget({super.key});

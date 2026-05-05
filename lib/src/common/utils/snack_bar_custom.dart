@@ -14,13 +14,13 @@ class CustomSnackBar {
     IconData displayIcon;
 
     if (isError) {
-      backgroundColor = Colors.redAccent.withOpacity(0.9);
+      backgroundColor = Colors.redAccent.withValues(alpha:0.9);
       displayIcon = icon ?? Icons.error_outline;
     } else if (isSuccess) {
-      backgroundColor = Colors.green.withOpacity(0.9);
+      backgroundColor = Colors.green.withValues(alpha:0.9);
       displayIcon = icon ?? Icons.check_circle_outline;
     } else {
-      backgroundColor = Colors.blueAccent.withOpacity(0.9);
+      backgroundColor = Colors.blueAccent.withValues(alpha:0.9);
       displayIcon = icon ?? Icons.info_outline;
     }
 
@@ -36,7 +36,7 @@ class CustomSnackBar {
       duration: duration,
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha:0.2),
           blurRadius: 10,
           offset: const Offset(0, 5),
         ),

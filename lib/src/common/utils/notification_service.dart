@@ -23,6 +23,7 @@ class NotificationService {
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
+      notificationCategories: [],
     );
 
     const InitializationSettings initializationSettings = InitializationSettings(
@@ -37,6 +38,21 @@ class NotificationService {
       },
     );
 
+    // Set foreground notification presentation options for iOS
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    }
+    
+    // This allows notifications to be shown even when the app is in the foreground on iOS
+    // We can also set this in the initialize call for newer versions if needed
+
     // Request permission for Android 13+
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -50,8 +66,40 @@ class NotificationService {
     
     tz.initializeTimeZones();
     try {
-      final timeZoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName.toString()));
+      final dynamic timeZone = await FlutterTimezone.getLocalTimezone();
+      String timeZoneName = "";
+      
+      if (timeZone is String) {
+        timeZoneName = timeZone;
+      } else {
+        // If it's a TimezoneInfo object, it usually has a 'name' property
+        try {
+          timeZoneName = (timeZone as dynamic).name;
+        } catch (e) {
+          timeZoneName = timeZone.toString();
+        }
+      }
+
+      // Handle cases like "TimezoneInfo(Asia/Karachi, ...)" or "locale: en-US, name: Asia/Karachi"
+      if (timeZoneName.contains('name:')) {
+        timeZoneName = timeZoneName.split('name:').last.split(',').first.split(')').first.trim();
+      } else if (timeZoneName.contains('(')) {
+        timeZoneName = timeZoneName.split('(').last.split(',').first.split(')').first.trim();
+      }
+      
+      // If we still get something like "locale: en-US", fallback to a guess or UTC
+      if (timeZoneName.contains('locale:')) {
+        debugPrint("Warning: Timezone detection returned locale instead of name. Defaulting to Asia/Karachi for testing or UTC.");
+        timeZoneName = "Asia/Karachi";
+      }
+
+      // Handle common human-readable names to IANA names mapping
+      if (timeZoneName == "Pakistan Standard Time") {
+        timeZoneName = "Asia/Karachi";
+      }
+      
+      debugPrint("Detected Timezone Name: $timeZoneName");
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
     } catch (e) {
       debugPrint("Could not set local timezone: $e. Falling back to UTC.");
       tz.setLocalLocation(tz.getLocation('UTC'));
@@ -59,6 +107,15 @@ class NotificationService {
 
     // Start Real-time Listener
     _listenToTaskChanges();
+
+    // Test notification after 3 seconds to verify system works
+    Future.delayed(const Duration(seconds: 3), () {
+      showInstantNotification(
+        id: 0,
+        title: "Taskify System Check",
+        body: "Notification system is active and ready!",
+      );
+    });
   }
 
   // Real-time Supabase Listener
@@ -66,24 +123,36 @@ class NotificationService {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
 
-    // Listen to NEW tasks added to the database
+    // Track notified task IDs to avoid duplicates
+    final Set<String> notifiedTaskIds = {};
+
+    // Listen to tasks added to the database
     Supabase.instance.client
         .from('tasks')
         .stream(primaryKey: ['id'])
         .eq('user_id', user.id)
         .listen((List<Map<String, dynamic>> data) {
       if (data.isNotEmpty) {
-        // Find the most recently added task (assuming highest ID or just the first in stream)
-        final lastTask = data.first;
-        
-        // Check if this task was added in the last 5 seconds to avoid spamming old notifications
-        // In a real pro app, we'd use a local database to track which ones were already notified.
-        
-        showInstantNotification(
-          id: lastTask['id'].hashCode,
-          title: "Task Sync: ${lastTask['title']}",
-          body: "Your tasks are synced in real-time with the cloud.",
-        );
+        // Sort by created_at or timestamp if available, otherwise assume latest is first
+        // Check for new tasks that haven't been notified yet
+        for (var task in data) {
+          final String taskId = task['id'].toString();
+          final String taskTitle = task['title'] ?? 'New Task';
+          
+          // Check if task was created in the last 10 seconds to avoid notifying old tasks
+          final DateTime createdAt = DateTime.tryParse(task['timeStamp'] ?? '') ?? DateTime.now();
+          final bool isRecent = DateTime.now().difference(createdAt).inSeconds < 10;
+
+          if (!notifiedTaskIds.contains(taskId) && isRecent) {
+            notifiedTaskIds.add(taskId);
+            
+            showInstantNotification(
+              id: taskId.hashCode, // Unique ID based on Task ID
+              title: "Taskify Sync: $taskTitle",
+              body: "Your task has been synced successfully.",
+            );
+          }
+        }
       }
     });
   }
@@ -94,7 +163,7 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
-    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+    const  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'instant_notifications',
       'Instant Notifications',
       channelDescription: 'Real-time updates from the database',
@@ -102,13 +171,15 @@ class NotificationService {
       priority: Priority.high,
       icon: '@mipmap/ic_launcher', // Using app logo
     );
-    
-    final NotificationDetails details = NotificationDetails(
+
+    const  NotificationDetails details = NotificationDetails(
       android: androidDetails,
-      iOS: const DarwinNotificationDetails(
+      iOS:  DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
+        presentBanner: true,
+        presentList: true,
       ),
     );
 
@@ -127,14 +198,22 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
+    debugPrint("Scheduling reminder: $title at $scheduledTime (Local Now: ${DateTime.now()})");
+    
     // Prevent scheduling in the past
-    if (scheduledTime.isBefore(DateTime.now())) return;
+    if (scheduledTime.isBefore(DateTime.now())) {
+      debugPrint("Skipping reminder: scheduled time $scheduledTime is in the past.");
+      return;
+    }
+
+    final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    debugPrint("TZ Scheduled Time: $tzScheduledTime (TZ Local Now: ${tz.TZDateTime.now(tz.local)})");
 
     await _notificationsPlugin.zonedSchedule(
       id: id,
       title: title,
       body: body,
-      scheduledDate: tz.TZDateTime.from(scheduledTime, tz.local),
+      scheduledDate: tzScheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'task_reminders_v2',
@@ -150,6 +229,8 @@ class NotificationService {
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          presentBanner: true,
+          presentList: true,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -169,7 +250,7 @@ class NotificationService {
     await _notificationsPlugin.zonedSchedule(
       id: 999, // Unique ID for daily digest
       title: 'Daily Digest',
-      body: 'Yaar, aaj aap ke $pendingTasksCount tasks pending hain. Chalein shuru karte hain!',
+      body: 'Good morning! You have $pendingTasksCount pending tasks today. Let\'s get started!',
       scheduledDate: _nextInstanceOfNineAM(),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(

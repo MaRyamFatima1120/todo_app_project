@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_app/src/common/widgets/custom_confirmation_dialog.dart';
 import '../../../../common/constants/app_color.dart';
 import '../../../../common/constants/app_icon.dart';
 import '../../../../common/utils/global_variable.dart';
+import '../../../../common/widgets/custom_confirmation_dialog.dart';
 import '../../../../common/widgets/drawer_widget.dart';
 import '../../../view-model/auth_controller.dart';
 

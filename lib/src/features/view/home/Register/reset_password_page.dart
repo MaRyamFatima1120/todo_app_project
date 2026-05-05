@@ -51,7 +51,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             child: Container(
               margin: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back_ios_rounded),
