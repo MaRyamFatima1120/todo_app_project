@@ -49,67 +49,77 @@ class _ForgetPageState extends State<ForgetPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(),
-          body: SingleChildScrollView(
-            child: Container(
-              margin: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Forgot password?",
-                    style: textTheme(context).bodyLarge,
-                  ),
-                  SizedBox(height: 10.h,),
-                  Text(
-                    "Enter your email address and we’ll send you confirmation code to reset your password.",
-                    style: textTheme(context).bodySmall?.copyWith(
-                      color: const Color(0xFF878787),
-                      fontWeight: FontWeight.normal
-                    ),
-                  ),
-                  SizedBox(
-                    height: 0.025.sh
-                  ),
-                  Form(
-                    key: _formKey,
+        appBar: AppBar(),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(20.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomTextFormField(
-                          labelText: "Email",
-                          keyboard: TextInputType.emailAddress,
-                          controller: _email,
-                          validator: validateEmail,
+                        Text(
+                          "Forgot password?",
+                          style: textTheme(context).bodyLarge,
                         ),
                         SizedBox(
-                            height: 0.023.sh
+                          height: 10.h,
                         ),
-                        Obx(() => _authController.isLoading.value
-                            ? const Center(child: CircularProgressIndicator())
-                            : CustomButton(
-                                pressed: () {
-                                  if (_formKey.currentState?.validate() ??
-                                      false) {
-                                    _authController.sendPasswordResetEmail(
-                                      _email.text.trim(),
-                                    );
-                                  }
-                                },
-                                bgColor: colorScheme(context).primary,
-                                width: 1.sw,
-                                child: Text(
-                                  " Continue",
-                                  style: textTheme(context).bodyMedium,
-                                ),
-                              )),
+                        Text(
+                          "Enter your email address and we’ll send you confirmation code to reset your password.",
+                          style: textTheme(context).bodySmall?.copyWith(
+                              color: const Color(0xFF878787),
+                              fontWeight: FontWeight.normal),
+                        ),
+                        SizedBox(height: 0.025.sh),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              CustomTextFormField(
+                                labelText: "Email",
+                                keyboard: TextInputType.emailAddress,
+                                controller: _email,
+                                validator: validateEmail,
+                              ),
+                              SizedBox(height: 0.023.sh),
+                              Obx(() => _authController.isLoading.value
+                                  ? const Center(
+                                      child: CircularProgressIndicator())
+                                  : CustomButton(
+                                      pressed: () {
+                                        if (_formKey.currentState?.validate() ??
+                                            false) {
+                                          _authController
+                                              .sendPasswordResetEmail(
+                                            _email.text.trim(),
+                                          );
+                                        }
+                                      },
+                                      bgColor: colorScheme(context).primary,
+                                      width: 1.sw,
+                                      child: Text(
+                                        " Continue",
+                                        style: textTheme(context).bodyMedium,
+                                      ),
+                                    )),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          )),
+            );
+          },
+        ),
+      ),
     );
   }
 }

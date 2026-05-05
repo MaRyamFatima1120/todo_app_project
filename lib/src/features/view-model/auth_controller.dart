@@ -137,11 +137,12 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
       await _supabaseService.resetPasswordForEmail(email);
-      
+
       Get.dialog(
         CustomConfirmationDialog(
-          title: "Email Sent!",
-          message: "A password reset link has been sent to $email. Please check your inbox.",
+          title: "Check Your Email",
+          message:
+              "We've sent a reset link to $email.\n\nIMPORTANT: Please open the link on your mobile phone to reset your password in the app.",
           confirmText: "Back to Login",
           cancelText: "", // Hide cancel button
           icon: Icons.mark_email_read_rounded,

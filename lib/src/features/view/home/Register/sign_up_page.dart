@@ -24,7 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _user = TextEditingController();
   final _password = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
-  bool _obscureText = true;
+  final RxBool _obscureText = true.obs;
   File? _image;
 
   Future<void> _pickImage() async {
@@ -56,14 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: Image.asset(
-                        "assets/images/home.png",
-                        fit: BoxFit.contain,
-                        width: 0.6.sw,
-                        height: 0.18.sh,
-                      ),
-                    ),
+
                     SizedBox(height: 20.h),
                     Text("Create Account",
                         style: textTheme(context).titleMedium?.copyWith(
@@ -137,41 +130,40 @@ class _RegisterPageState extends State<RegisterPage> {
                             alignment: MainAxisAlignment.start,
                             overflowAlignment: OverflowBarAlignment.start,
                             children: [
-                              CustomTextFormField(
-                                icon: const Icon(Icons.key),
-                                labelText: "Password",
-                                keyboard: TextInputType.text,
-                                validator: validatePassword,
-                                controller: _password,
-                                obscureText: _obscureText,
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (value) async {
-                                  if (_formKey.currentState?.validate() ??
-                                      false) {
-                                    await _authController.register(
-                                      _email.text.trim(),
-                                      _password.text.trim(),
-                                      _user.text.trim(),
-                                      imageFile: _image,
-                                    );
-                                  }
-                                },
-                                suffixIcon: IconButton(
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureText = !_obscureText;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    _obscureText
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                    color: _obscureText
-                                        ? colorScheme(context).onSecondary
-                                        : colorScheme(context).primary,
-                                  ),
-                                ),
-                              ),
+                              Obx(() => CustomTextFormField(
+                                    icon: const Icon(Icons.key),
+                                    labelText: "Password",
+                                    keyboard: TextInputType.text,
+                                    validator: validatePassword,
+                                    controller: _password,
+                                    obscureText: _obscureText.value,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (value) async {
+                                      if (_formKey.currentState?.validate() ??
+                                          false) {
+                                        await _authController.register(
+                                          _email.text.trim(),
+                                          _password.text.trim(),
+                                          _user.text.trim(),
+                                          imageFile: _image,
+                                        );
+                                      }
+                                    },
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        _obscureText.value =
+                                            !_obscureText.value;
+                                      },
+                                      icon: Icon(
+                                        _obscureText.value
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        color: _obscureText.value
+                                            ? colorScheme(context).onSecondary
+                                            : colorScheme(context).primary,
+                                      ),
+                                    ),
+                                  )),
                             ],
                           ),
                           SizedBox(height: 20.h),

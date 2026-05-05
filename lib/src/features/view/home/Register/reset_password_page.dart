@@ -19,6 +19,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final AuthController _authController = Get.put(AuthController());
+  final RxBool _obscurePassword = true.obs;
+  final RxBool _obscureConfirmPassword = true.obs;
 
   String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
@@ -44,80 +46,129 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-          appBar: AppBar(
-            title: const Text("Reset Password"),
-          ),
-          body: SingleChildScrollView(
-            child: Container(
-              margin: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Set New Password",
-                    style: textTheme(context).bodyLarge,
-                  ),
-                  SizedBox(height: 10.h,),
-                  Text(
-                    "Your new password must be different from previously used passwords.",
-                    style: textTheme(context).bodySmall?.copyWith(
-                      color: const Color(0xFF878787),
-                      fontWeight: FontWeight.normal
-                    ),
-                  ),
-                  SizedBox(
-                    height: 0.025.sh
-                  ),
-                  Form(
-                    key: _formKey,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.all(20.0),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CustomTextFormField(
-                          labelText: "New Password",
-                          keyboard: TextInputType.visiblePassword,
-                          controller: _passwordController,
-                          validator: validatePassword,
-                          obscureText: true,
+                     /*   Image.asset(
+                          "assets/images/LOGO copy.png",
+                          width: 100.w,
+                          height: 100.h,
+                        ),
+                        SizedBox(height: 30.h),*/
+                        Text(
+                          "Set New Password",
+                          style: textTheme(context).bodyLarge,
                         ),
                         SizedBox(
-                            height: 0.02.sh
+                          height: 10.h,
                         ),
-                        CustomTextFormField(
-                          labelText: "Confirm Password",
-                          keyboard: TextInputType.visiblePassword,
-                          controller: _confirmPasswordController,
-                          validator: validateConfirmPassword,
-                          obscureText: true,
+                        Text(
+                          "Your new password must be different from previously used passwords.",
+                          textAlign: TextAlign.center,
+                          style: textTheme(context).bodySmall?.copyWith(
+                              color: const Color(0xFF878787),
+                              fontWeight: FontWeight.normal),
                         ),
-                        SizedBox(
-                            height: 0.04.sh
+                        SizedBox(height: 0.04.sh),
+                        Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Obx(() => CustomTextFormField(
+                                    labelText: "New Password",
+                                    keyboard: TextInputType.visiblePassword,
+                                    controller: _passwordController,
+                                    validator: validatePassword,
+                                    obscureText: _obscurePassword.value,
+                                    textInputAction: TextInputAction.next,
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        _obscurePassword.value =
+                                            !_obscurePassword.value;
+                                      },
+                                      icon: Icon(
+                                        _obscurePassword.value
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        color: _obscurePassword.value
+                                            ? colorScheme(context).onSecondary
+                                            : colorScheme(context).primary,
+                                      ),
+                                    ),
+                                  )),
+                              SizedBox(height: 0.02.sh),
+                              Obx(() => CustomTextFormField(
+                                    labelText: "Confirm Password",
+                                    keyboard: TextInputType.visiblePassword,
+                                    controller: _confirmPasswordController,
+                                    validator: validateConfirmPassword,
+                                    obscureText: _obscureConfirmPassword.value,
+                                    textInputAction: TextInputAction.done,
+                                    onFieldSubmitted: (value) {
+                                      if (_formKey.currentState?.validate() ??
+                                          false) {
+                                        _authController.updatePassword(
+                                          _passwordController.text.trim(),
+                                        );
+                                      }
+                                    },
+                                    suffixIcon: IconButton(
+                                      onPressed: () {
+                                        _obscureConfirmPassword.value =
+                                            !_obscureConfirmPassword.value;
+                                      },
+                                      icon: Icon(
+                                        _obscureConfirmPassword.value
+                                            ? Icons.visibility
+                                            : Icons.visibility_off,
+                                        color: _obscureConfirmPassword.value
+                                            ? colorScheme(context).onSecondary
+                                            : colorScheme(context).primary,
+                                      ),
+                                    ),
+                                  )),
+                              SizedBox(height: 0.04.sh),
+                              Obx(() => _authController.isLoading.value
+                                  ? const Center(
+                                      child: CircularProgressIndicator())
+                                  : CustomButton(
+                                      pressed: () {
+                                        if (_formKey.currentState?.validate() ??
+                                            false) {
+                                          _authController.updatePassword(
+                                            _passwordController.text.trim(),
+                                          );
+                                        }
+                                      },
+                                      bgColor: colorScheme(context).primary,
+                                      width: 1.sw,
+                                      child: Text(
+                                        "Reset Password",
+                                        style: textTheme(context).bodyMedium,
+                                      ),
+                                    )),
+                            ],
+                          ),
                         ),
-                        Obx(() => _authController.isLoading.value
-                            ? const Center(child: CircularProgressIndicator())
-                            : CustomButton(
-                                pressed: () {
-                                  if (_formKey.currentState?.validate() ??
-                                      false) {
-                                    _authController.updatePassword(
-                                      _passwordController.text.trim(),
-                                    );
-                                  }
-                                },
-                                bgColor: colorScheme(context).primary,
-                                width: 1.sw,
-                                child: Text(
-                                  "Reset Password",
-                                  style: textTheme(context).bodyMedium,
-                                ),
-                              )),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          )),
+            );
+          },
+        ),
+      ),
     );
   }
 }
