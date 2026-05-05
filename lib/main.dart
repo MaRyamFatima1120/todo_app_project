@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GetMaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Todo App',
+          title: 'Taskify',
           theme: appTheme(context),
           initialRoute: "/",
           defaultTransition: Transition.fadeIn,

@@ -33,7 +33,7 @@ class _SplashPageState extends State<SplashPage> {
           SizedBox(
             height: 0.01.sh,
           ),
-          Text("Todo App", style: textTheme(context).bodyLarge),
+          Text("Taskify", style: textTheme(context).bodyLarge),
           SizedBox(
             height: 0.05.sh,
           ),
