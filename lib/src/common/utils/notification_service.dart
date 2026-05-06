@@ -16,7 +16,7 @@ class NotificationService {
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@drawable/launch_background'); // Using a more standard drawable
     
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
@@ -107,15 +107,6 @@ class NotificationService {
 
     // Start Real-time Listener
     _listenToTaskChanges();
-
-    // Test notification after 3 seconds to verify system works
-    Future.delayed(const Duration(seconds: 3), () {
-      showInstantNotification(
-        id: 0,
-        title: "Taskify System Check",
-        body: "Notification system is active and ready!",
-      );
-    });
   }
 
   // Real-time Supabase Listener
@@ -163,13 +154,16 @@ class NotificationService {
     required String title,
     required String body,
   }) async {
+    // Ensure ID is a positive 32-bit integer
+    final int safeId = id.abs() % 2147483647;
+
     const  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'instant_notifications',
-      'Instant Notifications',
-      channelDescription: 'Real-time updates from the database',
+      'instant_notifications_v3',
+      'Instant Updates',
+      channelDescription: 'Real-time updates from Taskify',
       importance: Importance.max,
       priority: Priority.high,
-      icon: '@mipmap/ic_launcher', // Using app logo
+      icon: '@drawable/launch_background',
     );
 
     const  NotificationDetails details = NotificationDetails(
@@ -200,23 +194,35 @@ class NotificationService {
   }) async {
     debugPrint("Scheduling reminder: $title at $scheduledTime (Local Now: ${DateTime.now()})");
     
-    // Prevent scheduling in the past
-    if (scheduledTime.isBefore(DateTime.now())) {
-      debugPrint("Skipping reminder: scheduled time $scheduledTime is in the past.");
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    
+    // Ensure ID is a positive 32-bit integer
+    final int safeId = id.abs() % 2147483647;
+
+    debugPrint("Scheduling: $title | SafeID: $safeId | Time: $tzScheduledTime");
+
+    // Prevent scheduling in the past (with a 10-minute grace period for missed reminders)
+    if (tzScheduledTime.isBefore(now)) {
+      if (now.difference(tzScheduledTime).inMinutes < 10) {
+        await showInstantNotification(
+          id: safeId,
+          title: title,
+          body: body,
+        );
+      }
       return;
     }
-
-    final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
     debugPrint("TZ Scheduled Time: $tzScheduledTime (TZ Local Now: ${tz.TZDateTime.now(tz.local)})");
 
     await _notificationsPlugin.zonedSchedule(
-      id: id,
+      id: safeId,
       title: title,
       body: body,
       scheduledDate: tzScheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_reminders_v2',
+          'task_reminders_v3',
           'Task Reminders',
           channelDescription: 'Notifications for task reminders',
           importance: Importance.max,
@@ -224,6 +230,7 @@ class NotificationService {
           showWhen: true,
           playSound: true,
           enableVibration: true,
+          icon: '@drawable/launch_background',
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -249,14 +256,14 @@ class NotificationService {
 
     await _notificationsPlugin.zonedSchedule(
       id: 999, // Unique ID for daily digest
-      title: 'Daily Digest',
-      body: 'Good morning! You have $pendingTasksCount pending tasks today. Let\'s get started!',
-      scheduledDate: _nextInstanceOfNineAM(),
+      title: 'Morning Briefing ☀️',
+      body: 'Good morning! You have $pendingTasksCount pending tasks today. Let\'s get productive!',
+      scheduledDate: _nextInstanceOfTime(9, 0),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'daily_digest',
-          'Daily Digest',
-          channelDescription: 'Daily summary of pending tasks',
+          'daily_summary',
+          'Daily Summaries',
+          channelDescription: 'Morning and evening task summaries',
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
@@ -267,13 +274,76 @@ class NotificationService {
     );
   }
 
-  tz.TZDateTime _nextInstanceOfNineAM() {
+  // Schedule Evening Wrap-up at 8:00 PM
+  Future<void> scheduleEveningWrapUp(int completedCount, int remainingCount) async {
+    String body = completedCount > 0 
+        ? 'Great job! You completed $completedCount tasks today. $remainingCount remaining for tomorrow.'
+        : 'The day is almost over! You have $remainingCount tasks to look at for tomorrow.';
+
+    await _notificationsPlugin.zonedSchedule(
+      id: 998, // Unique ID for evening wrap-up
+      title: 'Evening Wrap-up 🌙',
+      body: body,
+      scheduledDate: _nextInstanceOfTime(20, 0),
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_summary',
+          'Daily Summaries',
+          channelDescription: 'Morning and evening task summaries',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
+  }
+
+  // Schedule Inactivity Nudge (48 hours from now)
+  Future<void> scheduleInactivityNudge() async {
+    final tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(hours: 48));
+
+    await _notificationsPlugin.zonedSchedule(
+      id: 997,
+      title: 'We Miss You! 👋',
+      body: 'You haven\'t checked your tasks in a while. Let\'s get back on track!',
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'reminders',
+          'General Reminders',
+          channelDescription: 'Nudges and achievement notifications',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  // Show Achievement Notification
+  Future<void> showAchievementNotification(String message) async {
+    await showInstantNotification(
+      id: 888,
+      title: 'Goal Achieved! 🏆',
+      body: message,
+    );
+  }
+
+  tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute);
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
+  }
+
+  // Deprecated - replaced by _nextInstanceOfTime
+  tz.TZDateTime _nextInstanceOfNineAM() {
+    return _nextInstanceOfTime(9, 0);
   }
 }

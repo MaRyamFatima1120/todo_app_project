@@ -156,7 +156,14 @@ class HomeController extends GetxController {
 
       // 3. Update Local Storage
       await updateSharedPreference();
-      _scheduleDailyDigest();
+      _scheduleSummaryNotifications();
+
+      // Achievement: If all tasks are completed
+      if (newStatus && getTasksByFilter('pending').isEmpty) {
+        _notificationService.showAchievementNotification(
+          "Amazing! You've completed all your tasks for today. 🎉"
+        );
+      }
 
       debugPrint("Successfully toggled task: $taskId to $newStatus");
     } catch (e) {
@@ -174,12 +181,17 @@ class HomeController extends GetxController {
     List<Map<String, dynamic>> supabaseTasks =
         await _supabaseService.getTasks();
 
-    if (supabaseTasks.isNotEmpty) {
+    final user = _supabaseService.currentUser;
+
+    if (user != null) {
+      // If we are online and have a result (even if empty), trust the database
       addData.value = supabaseTasks;
       searchData.value = addData;
-      await updateSharedPreference(); // Sync local storage
+      await updateSharedPreference(); // Keep local storage in sync
+      _syncReminders();
+      debugPrint("Data loaded from Supabase. Count: ${supabaseTasks.length}");
     } else {
-      // Fallback to local storage if Supabase is empty or offline
+      // Only fallback to SharedPreferences if we are truly offline/logged out
       SharedPreferences prefers = await SharedPreferences.getInstance();
       String? jsonData = prefers.getString('data');
 
@@ -206,17 +218,24 @@ class HomeController extends GetxController {
     // Cancel notification
     _notificationService.cancelNotification(taskId.hashCode);
 
+    // Update local lists
     addData.removeAt(index);
-    updateSharedPreference();
-    searchData.value = addData;
-    _scheduleDailyDigest();
+    searchData.value = List.from(addData);
+    taskSearchData.value = getFilteredTasks();
+    
+    // Sync to local storage
+    await updateSharedPreference();
+    
+    _scheduleSummaryNotifications();
+    update();
+    debugPrint("Deleted task $taskId and synced local storage.");
   }
 
   @override
   void onInit() {
     super.onInit();
     _startRealtimeListener();
-    _scheduleDailyDigest();
+    _scheduleSummaryNotifications();
   }
 
   @override
@@ -232,13 +251,43 @@ class HomeController extends GetxController {
       onChangedFunction(searchQuery.value); // Keep search in sync
       taskSearchData.value = getFilteredTasks(); // Keep filters in sync
       updateSharedPreference(); // Sync local storage for offline use
-      _scheduleDailyDigest();
+      _scheduleSummaryNotifications();
+      _syncReminders(); // Sync notifications whenever tasks change
     });
   }
 
-  void _scheduleDailyDigest() {
+  // Schedule notifications for all upcoming reminders in the task list
+  void _syncReminders() {
+    for (var task in addData) {
+      if (task['reminder_time'] != null && task['completed'] == false) {
+        try {
+          final reminderTime = DateTime.parse(task['reminder_time']);
+          // Call scheduleTaskReminder and let it handle the grace period for past times
+          _notificationService.scheduleTaskReminder(
+            id: task['id'].toString().hashCode,
+            title: "Task Reminder: ${task['title']}",
+            body: task['description'] ?? '',
+            scheduledTime: reminderTime,
+          );
+        } catch (e) {
+          debugPrint("Error parsing reminder time for task ${task['id']}: $e");
+        }
+      }
+    }
+  }
+
+  void _scheduleSummaryNotifications() {
     int pendingCount = getTasksByFilter('pending').length;
+    int completedCount = getTasksByFilter('completed').length;
+    
     _notificationService.scheduleDailyDigest(pendingCount);
+    _notificationService.scheduleEveningWrapUp(completedCount, pendingCount);
+    _notificationService.scheduleInactivityNudge();
+  }
+
+  // Deprecated - replaced by _scheduleSummaryNotifications
+  void _scheduleDailyDigest() {
+    _scheduleSummaryNotifications();
   }
 
   //editTask
