@@ -71,14 +71,16 @@ class HomeController extends GetxController {
         'description': description.value,
         'timeStamp': DateTime.now().toIso8601String(),
         'completed': false,
-        'reminder_time': reminderTime.value?.toIso8601String(),
+        'reminder_time': reminderTime.value?.toUtc().toIso8601String(),
       };
 
-      // 1. Instant UI Update (Add to local list immediately)
-      addData.insert(0, newTask); // Insert at the top for better visibility
+      // 1. Capture the reminder time locally before clearing
+      final DateTime? scheduledReminder = reminderTime.value;
+
+      // 2. Instant UI Update (Add to local list immediately)
+      addData.insert(0, newTask); 
       searchData.value = List.from(addData);
-      onChangedFunction(searchQuery.value); // Update search list if active
-      clearFormField();
+      onChangedFunction(searchQuery.value); 
 
       try {
         // 2. Background Sync to Supabase
@@ -102,23 +104,23 @@ class HomeController extends GetxController {
             searchData.value = List.from(addData);
           }
 
-          // Schedule notification if reminderTime is set
-          if (reminderTime.value != null) {
+          // Use the captured local variable instead of the potentially null observable
+          if (scheduledReminder != null) {
             await _notificationService.scheduleTaskReminder(
-              id: savedTask['id'].hashCode,
-              title: savedTask['title'],
-              body: savedTask['description'],
-              scheduledTime: reminderTime.value!,
+              id: savedTask['id'].toString().hashCode,
+              title: savedTask['title'] ?? 'Task Reminder',
+              body: savedTask['description'] ?? 'Your task is due!',
+              scheduledTime: scheduledReminder,
             );
           }
 
           await updateSharedPreference();
           _scheduleDailyDigest();
-          debugPrint("Task synced successfully with Supabase");
+          clearFormField(); // Now clear the form
+          debugPrint("Task synced successfully with Supabase and notification scheduled");
         }
       } catch (e) {
         debugPrint("Error syncing task: $e");
-        // Optionally show a "Sync failed" indicator or retry logic
       }
     } else {
       debugPrint("Field is Empty!");
@@ -262,7 +264,7 @@ class HomeController extends GetxController {
     for (var task in addData) {
       if (task['reminder_time'] != null && task['completed'] == false) {
         try {
-          final reminderTime = DateTime.parse(task['reminder_time']);
+          final reminderTime = DateTime.parse(task['reminder_time']).toLocal();
           // Call scheduleTaskReminder and let it handle the grace period for past times
           _notificationService.scheduleTaskReminder(
             id: task['id'].toString().hashCode,
@@ -300,7 +302,7 @@ class HomeController extends GetxController {
       'title': newTitle,
       'description': newDescription,
       'timeStamp': timeStamp,
-      'reminder_time': reminderTime.value?.toIso8601String(),
+      'reminder_time': reminderTime.value?.toUtc().toIso8601String(),
     };
 
     // Update Supabase
@@ -308,9 +310,10 @@ class HomeController extends GetxController {
 
     // Reschedule notification if needed
     if (reminderTime.value != null) {
-      await _notificationService.cancelNotification(taskId.hashCode);
+      final int safeId = taskId.toString().hashCode;
+      await _notificationService.cancelNotification(safeId);
       await _notificationService.scheduleTaskReminder(
-        id: taskId.hashCode,
+        id: safeId,
         title: newTitle,
         body: newDescription,
         scheduledTime: reminderTime.value!,
@@ -320,7 +323,7 @@ class HomeController extends GetxController {
     addData[index]['title'] = newTitle;
     addData[index]['description'] = newDescription;
     addData[index]['timeStamp'] = timeStamp;
-    addData[index]['reminder_time'] = reminderTime.value?.toIso8601String();
+    addData[index]['reminder_time'] = reminderTime.value?.toUtc().toIso8601String();
     addData.refresh();
     updateSharedPreference();
     clearFormField();
@@ -393,18 +396,18 @@ class HomeController extends GetxController {
 
   String formatDate(String timestamp) {
     try {
-      DateTime dateTime = DateTime.parse(timestamp);
+      DateTime dateTime = DateTime.parse(timestamp).toLocal();
       DateTime now = DateTime.now();
 
       // Check if the date is today
       if (isSameDay(now, dateTime)) {
-        return "Today, ${DateFormat('HH:mm a').format(dateTime)}"; // Time only for today
+        return "Today, ${DateFormat.jm().format(dateTime)}"; // Automatically uses system format
       }
       // Check if the date is yesterday
       else if (isSameDay(now.subtract(const Duration(days: 1)), dateTime)) {
-        return "Yesterday, ${DateFormat('HH:mm a').format(dateTime)}";
+        return "Yesterday, ${DateFormat.jm().format(dateTime)}";
       } else {
-        return DateFormat('d MMMM, yyyy HH:mm a').format(dateTime);
+        return DateFormat.yMMMMd().add_jm().format(dateTime);
       }
     } catch (e) {
       debugPrint("Date format error: $e");

@@ -95,15 +95,44 @@ class NotificationService {
       }
 
       // Handle common human-readable names to IANA names mapping
-      if (timeZoneName == "Pakistan Standard Time") {
+      // Handle common human-readable names to IANA names mapping
+      if (timeZoneName == "Pakistan Standard Time" || timeZoneName.contains("Karachi") || timeZoneName.contains("PKT")) {
         timeZoneName = "Asia/Karachi";
+      } else if (timeZoneName == "India Standard Time" || timeZoneName.contains("Calcutta") || timeZoneName.contains("Kolkata") || timeZoneName.contains("IST")) {
+        timeZoneName = "Asia/Kolkata";
+      } else if (timeZoneName.contains("GMT+05") || timeZoneName.contains("UTC+05")) {
+        timeZoneName = "Asia/Karachi";
+      } else if (timeZoneName.contains("GMT+05:30") || timeZoneName.contains("UTC+05:30")) {
+        timeZoneName = "Asia/Kolkata";
+      } else if (timeZoneName == "China Standard Time" || timeZoneName.contains("Shanghai") || timeZoneName.contains("Beijing") || timeZoneName.contains("CST")) {
+        timeZoneName = "Asia/Shanghai";
       }
       
-      debugPrint("Detected Timezone Name: $timeZoneName");
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
+      // Attempt to set local location. If it fails, try to find by offset.
+      try {
+        tz.setLocalLocation(tz.getLocation(timeZoneName));
+      } catch (e) {
+        debugPrint("Could not find timezone by name, trying offset fallback...");
+        final int offsetInMinutes = DateTime.now().timeZoneOffset.inMinutes;
+        if (offsetInMinutes == 300) {
+          tz.setLocalLocation(tz.getLocation("Asia/Karachi"));
+        } else if (offsetInMinutes == 330) {
+          tz.setLocalLocation(tz.getLocation("Asia/Kolkata"));
+        } else {
+          // Fallback to UTC if all else fails, but this is rare
+          tz.setLocalLocation(tz.UTC);
+        }
+      }
+      
+      debugPrint("Confirmed System Timezone: ${tz.local.name}");
     } catch (e) {
-      debugPrint("Could not set local timezone: $e. Falling back to UTC.");
-      tz.setLocalLocation(tz.getLocation('UTC'));
+      debugPrint("Could not set local timezone: $e. Falling back to Asia/Karachi (Default) or UTC.");
+      try {
+         // Default to Asia/Karachi as a sensible default for the user's region if detection fails
+         tz.setLocalLocation(tz.getLocation('Asia/Karachi'));
+      } catch (_) {
+         tz.setLocalLocation(tz.getLocation('UTC'));
+      }
     }
 
     // Start Real-time Listener
@@ -187,12 +216,14 @@ class NotificationService {
     // Ensure ID is a positive 32-bit integer
     final int safeId = id.abs() % 2147483647;
 
-    const  AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'instant_notifications_v3',
-      'Instant Updates',
-      channelDescription: 'Real-time updates from Taskify',
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'taskify_reminders_v5',
+      'Taskify Final Reminders',
+      channelDescription: 'High priority alerts for your tasks',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
       icon: '@mipmap/ic_launcher',
     );
 
@@ -228,14 +259,35 @@ class NotificationService {
     debugPrint("Scheduling reminder: $formattedTitle at $scheduledTime (Local Now: ${DateTime.now()})");
     
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    
+    // Convert input DateTime to TZDateTime correctly
+    tz.TZDateTime tzScheduledTime;
+    if (scheduledTime.isUtc) {
+      tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
+    } else {
+      tzScheduledTime = tz.TZDateTime(
+        tz.local,
+        scheduledTime.year,
+        scheduledTime.month,
+        scheduledTime.day,
+        scheduledTime.hour,
+        scheduledTime.minute,
+        scheduledTime.second,
+      );
+    }
+
+    // SMART LOGIC: If the time has already passed for today, move it to tomorrow
+    if (tzScheduledTime.isBefore(now) && now.difference(tzScheduledTime).inMinutes > 10) {
+       debugPrint("Scheduled time $tzScheduledTime has already passed. Moving to tomorrow.");
+       tzScheduledTime = tzScheduledTime.add(const Duration(days: 1));
+    }
     
     // Ensure ID is a positive 32-bit integer
     final int safeId = id.abs() % 2147483647;
 
-    debugPrint("Scheduling: $formattedTitle | SafeID: $safeId | Time: $tzScheduledTime");
+    debugPrint("SafeID: $safeId | Final Target: $tzScheduledTime (Now: $now)");
 
-    // Prevent scheduling in the past (with a 10-minute grace period for missed reminders)
+    // Final check: if it's still in the past (should only happen if < 10 mins ago)
     if (tzScheduledTime.isBefore(now)) {
       if (now.difference(tzScheduledTime).inMinutes < 10) {
         await showInstantNotification(
@@ -246,7 +298,6 @@ class NotificationService {
       }
       return;
     }
-    debugPrint("TZ Scheduled Time: $tzScheduledTime (TZ Local Now: ${tz.TZDateTime.now(tz.local)})");
 
     await _notificationsPlugin.zonedSchedule(
       id: safeId,
@@ -255,15 +306,17 @@ class NotificationService {
       scheduledDate: tzScheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
-          'task_reminders_v3',
-          'Task Reminders',
-          channelDescription: 'Notifications for task reminders',
+          'taskify_reminders_v5',
+          'Taskify Final Reminders',
+          channelDescription: 'High priority alerts for your tasks',
           importance: Importance.max,
           priority: Priority.high,
           showWhen: true,
           playSound: true,
           enableVibration: true,
-          icon: '@mipmap/ic_launcher', // Fixed: Using launcher icon
+          visibility: NotificationVisibility.public,
+          category: AndroidNotificationCategory.reminder,
+          icon: '@mipmap/ic_launcher',
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,

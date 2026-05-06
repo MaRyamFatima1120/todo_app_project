@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../common/constants/app_color.dart';
 import '../../common/constants/app_icon.dart';
 import '../../common/utils/global_variable.dart';
@@ -70,7 +71,6 @@ class _MainPageState extends State<MainPage> {
                                 "Add Task ",
                                 style: textTheme(context).bodyMedium?.copyWith(
                                     color: colorScheme(context).onSecondary),
-                                textDirection: TextDirection.rtl,
                               ),
                               SizedBox(
                                 width: 0.25.sw,
@@ -153,15 +153,13 @@ class _MainPageState extends State<MainPage> {
                                     child: Obx(() => Text(
                                           homeController.reminderTime.value ==
                                                   null
-                                              ? "Set a Reminder"
-                                              : "Reminder: ${homeController.formatDate(homeController.reminderTime.value!.toIso8601String())}",
+                                              ? "Set Reminder"
+                                              : "Reminder Set: ${DateFormat.jm().format(homeController.reminderTime.value!)}",
                                           style: textTheme(context)
                                               .bodySmall
                                               ?.copyWith(
-                                                color: colorScheme(context)
-                                                    .primary,
+                                                color: Colors.grey[600],
                                                 fontWeight: FontWeight.w600,
-                                                fontSize: 13.sp,
                                               ),
                                         )),
                                   ),
@@ -176,12 +174,10 @@ class _MainPageState extends State<MainPage> {
                           CustomButton(
                             pressed: () {
                               if (_formKey.currentState!.validate()) {
-                                //Update the controller's observable values with text from controllers
                                 homeController.title.value =
                                     titleController.text;
                                 homeController.description.value =
                                     descriptionController.text;
-                                //saveData
                                 homeController.saveData().then((_) {
                                   titleController.clear();
                                   descriptionController.clear();
@@ -210,7 +206,6 @@ class _MainPageState extends State<MainPage> {
         bottomNavigationBar: Obx(
           () => BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
-            // backgroundColor: Colors.pink,
             currentIndex: mainController.selected.value,
             onTap: mainController.onItemTap,
             items: [
