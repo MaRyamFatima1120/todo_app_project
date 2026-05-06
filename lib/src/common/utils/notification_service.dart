@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -16,7 +17,7 @@ class NotificationService {
 
   Future<void> init() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@drawable/launch_background'); // Using a more standard drawable
+        AndroidInitializationSettings('@mipmap/ic_launcher'); // Fixed: Using launcher icon for consistency
     
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
@@ -110,32 +111,55 @@ class NotificationService {
   }
 
   // Real-time Supabase Listener
-  void _listenToTaskChanges() {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) return;
+  StreamSubscription<List<Map<String, dynamic>>>? _taskSubscription;
+  final Set<String> _notifiedTaskIds = {}; // Fixed: Moved to class level
 
-    // Track notified task IDs to avoid duplicates
-    final Set<String> notifiedTaskIds = {};
+  void _listenToTaskChanges() {
+    debugPrint("Setting up Auth state listener for notifications...");
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      final user = data.session?.user;
+      if (user != null) {
+        debugPrint("User logged in: ${user.id}. Starting task stream for notifications...");
+        _startTaskStream(user.id);
+      } else {
+        debugPrint("User logged out. Stopping notification task stream and clearing all...");
+        _stopTaskStream();
+        await cancelAllNotifications(); // Fixed: Cleanup on logout
+      }
+    });
+
+    // Also check current session immediately in case user is already logged in
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    if (currentUser != null) {
+      debugPrint("Current user found: ${currentUser.id}. Starting task stream...");
+      _startTaskStream(currentUser.id);
+    }
+  }
+
+  void _startTaskStream(String userId) {
+    _stopTaskStream(); // Avoid duplicate streams
 
     // Listen to tasks added to the database
-    Supabase.instance.client
+    _taskSubscription = Supabase.instance.client
         .from('tasks')
         .stream(primaryKey: ['id'])
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .listen((List<Map<String, dynamic>> data) {
+      debugPrint("Real-time Update (NotificationService): Received ${data.length} tasks");
       if (data.isNotEmpty) {
-        // Sort by created_at or timestamp if available, otherwise assume latest is first
-        // Check for new tasks that haven't been notified yet
         for (var task in data) {
           final String taskId = task['id'].toString();
           final String taskTitle = task['title'] ?? 'New Task';
           
-          // Check if task was created in the last 10 seconds to avoid notifying old tasks
+          // Check if task was created recently to avoid notifying old tasks
+          // Using 60 seconds to be resilient to network delays
           final DateTime createdAt = DateTime.tryParse(task['timeStamp'] ?? '') ?? DateTime.now();
-          final bool isRecent = DateTime.now().difference(createdAt).inSeconds < 10;
+          final int secondsAgo = DateTime.now().difference(createdAt).inSeconds;
+          final bool isRecent = secondsAgo < 60;
 
-          if (!notifiedTaskIds.contains(taskId) && isRecent) {
-            notifiedTaskIds.add(taskId);
+          if (!_notifiedTaskIds.contains(taskId) && isRecent) {
+            _notifiedTaskIds.add(taskId);
+            debugPrint("Triggering Sync Notification for: $taskTitle (Created $secondsAgo seconds ago)");
             
             showInstantNotification(
               id: taskId.hashCode, // Unique ID based on Task ID
@@ -146,6 +170,12 @@ class NotificationService {
         }
       }
     });
+  }
+
+  void _stopTaskStream() {
+    _taskSubscription?.cancel();
+    _taskSubscription = null;
+    _notifiedTaskIds.clear(); // Fixed: Clear only on explicit stop/logout
   }
 
   // Show an instant notification (Useful for Real-time triggers)
@@ -163,7 +193,7 @@ class NotificationService {
       channelDescription: 'Real-time updates from Taskify',
       importance: Importance.max,
       priority: Priority.high,
-      icon: '@drawable/launch_background',
+      icon: '@mipmap/ic_launcher',
     );
 
     const  NotificationDetails details = NotificationDetails(
@@ -178,7 +208,7 @@ class NotificationService {
     );
 
     await _notificationsPlugin.show(
-      id: id,
+      id: safeId,
       title: title,
       body: body,
       notificationDetails: details,
@@ -192,7 +222,10 @@ class NotificationService {
     required String body,
     required DateTime scheduledTime,
   }) async {
-    debugPrint("Scheduling reminder: $title at $scheduledTime (Local Now: ${DateTime.now()})");
+    final String formattedTitle = 'Reminder: $title';
+    const String formattedBody = 'This task is due soon. Tap to review it!';
+    
+    debugPrint("Scheduling reminder: $formattedTitle at $scheduledTime (Local Now: ${DateTime.now()})");
     
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
@@ -200,15 +233,15 @@ class NotificationService {
     // Ensure ID is a positive 32-bit integer
     final int safeId = id.abs() % 2147483647;
 
-    debugPrint("Scheduling: $title | SafeID: $safeId | Time: $tzScheduledTime");
+    debugPrint("Scheduling: $formattedTitle | SafeID: $safeId | Time: $tzScheduledTime");
 
     // Prevent scheduling in the past (with a 10-minute grace period for missed reminders)
     if (tzScheduledTime.isBefore(now)) {
       if (now.difference(tzScheduledTime).inMinutes < 10) {
         await showInstantNotification(
           id: safeId,
-          title: title,
-          body: body,
+          title: formattedTitle,
+          body: formattedBody,
         );
       }
       return;
@@ -217,8 +250,8 @@ class NotificationService {
 
     await _notificationsPlugin.zonedSchedule(
       id: safeId,
-      title: title,
-      body: body,
+      title: formattedTitle,
+      body: formattedBody,
       scheduledDate: tzScheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -230,7 +263,7 @@ class NotificationService {
           showWhen: true,
           playSound: true,
           enableVibration: true,
-          icon: '@drawable/launch_background',
+          icon: '@mipmap/ic_launcher', // Fixed: Using launcher icon
         ),
         iOS: DarwinNotificationDetails(
           presentAlert: true,
@@ -250,15 +283,26 @@ class NotificationService {
     await _notificationsPlugin.cancel(id: id);
   }
 
+  // Cancel all notifications (e.g., on logout)
+  Future<void> cancelAllNotifications() async {
+    await _notificationsPlugin.cancelAll();
+    debugPrint("All notifications cancelled (logout/cleanup).");
+  }
+
   // Schedule Daily Digest at 9:00 AM
   Future<void> scheduleDailyDigest(int pendingTasksCount) async {
-    if (pendingTasksCount == 0) return;
+    final String body = pendingTasksCount > 0
+        ? 'You have $pendingTasksCount task(s) waiting for you today. Let\'s crush it!'
+        : 'Your task list is clear today! A perfect time to plan ahead.';
+
+    final scheduledTime = _nextInstanceOfTime(9, 0);
+    debugPrint("Scheduling Daily Digest for $scheduledTime with $pendingTasksCount tasks.");
 
     await _notificationsPlugin.zonedSchedule(
       id: 999, // Unique ID for daily digest
-      title: 'Morning Briefing ☀️',
-      body: 'Good morning! You have $pendingTasksCount pending tasks today. Let\'s get productive!',
-      scheduledDate: _nextInstanceOfTime(9, 0),
+      title: 'Good Morning! ',
+      body: body,
+      scheduledDate: scheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'daily_summary',
@@ -276,15 +320,20 @@ class NotificationService {
 
   // Schedule Evening Wrap-up at 8:00 PM
   Future<void> scheduleEveningWrapUp(int completedCount, int remainingCount) async {
-    String body = completedCount > 0 
-        ? 'Great job! You completed $completedCount tasks today. $remainingCount remaining for tomorrow.'
-        : 'The day is almost over! You have $remainingCount tasks to look at for tomorrow.';
+    final String body = completedCount > 0 && remainingCount == 0
+        ? 'Amazing! You completed all $completedCount tasks today! '
+        : completedCount > 0
+            ? 'Nice work! $completedCount done, $remainingCount still to go. Tomorrow is a new chance! '
+            : 'No tasks done today — that\'s okay! $remainingCount tasks are waiting for you tomorrow. ';
+
+    final scheduledTime = _nextInstanceOfTime(20, 0);
+    debugPrint("Scheduling Evening Wrap-up for $scheduledTime. Completed: $completedCount, Remaining: $remainingCount");
 
     await _notificationsPlugin.zonedSchedule(
       id: 998, // Unique ID for evening wrap-up
-      title: 'Evening Wrap-up 🌙',
+      title: 'Day Check-in ',
       body: body,
-      scheduledDate: _nextInstanceOfTime(20, 0),
+      scheduledDate: scheduledTime,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'daily_summary',
@@ -302,12 +351,15 @@ class NotificationService {
 
   // Schedule Inactivity Nudge (48 hours from now)
   Future<void> scheduleInactivityNudge() async {
+    await _notificationsPlugin.cancel(id: 997); // Fixed: Prevent stacking by cancelling existing
+    
     final tz.TZDateTime scheduledDate = tz.TZDateTime.now(tz.local).add(const Duration(hours: 48));
+    debugPrint("Scheduling Inactivity Nudge for $scheduledDate (48 hours from now)");
 
     await _notificationsPlugin.zonedSchedule(
       id: 997,
-      title: 'We Miss You! 👋',
-      body: 'You haven\'t checked your tasks in a while. Let\'s get back on track!',
+      title: 'Hey, everything okay? ',
+      body: 'You haven\'t visited in a while. Your tasks are patiently waiting for you!',
       scheduledDate: scheduledDate,
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
@@ -327,7 +379,7 @@ class NotificationService {
   Future<void> showAchievementNotification(String message) async {
     await showInstantNotification(
       id: 888,
-      title: 'Goal Achieved! 🏆',
+      title: 'Goal Achieved!',
       body: message,
     );
   }
@@ -340,10 +392,5 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;
-  }
-
-  // Deprecated - replaced by _nextInstanceOfTime
-  tz.TZDateTime _nextInstanceOfNineAM() {
-    return _nextInstanceOfTime(9, 0);
   }
 }

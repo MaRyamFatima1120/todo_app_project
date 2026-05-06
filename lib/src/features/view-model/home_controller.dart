@@ -106,7 +106,7 @@ class HomeController extends GetxController {
           if (reminderTime.value != null) {
             await _notificationService.scheduleTaskReminder(
               id: savedTask['id'].hashCode,
-              title: "Task Reminder: ${savedTask['title']}",
+              title: savedTask['title'],
               body: savedTask['description'],
               scheduledTime: reminderTime.value!,
             );
@@ -161,7 +161,7 @@ class HomeController extends GetxController {
       // Achievement: If all tasks are completed
       if (newStatus && getTasksByFilter('pending').isEmpty) {
         _notificationService.showAchievementNotification(
-          "Amazing! You've completed all your tasks for today. 🎉"
+          "Amazing! You've completed all your tasks for today"
         );
       }
 
@@ -169,7 +169,7 @@ class HomeController extends GetxController {
     } catch (e) {
       debugPrint("Error toggling task: $e");
       CustomSnackBar.error(
-        "Failed to update task. Please check your connection or SQL setup.",
+        "Failed to update task. Please check your connection or SQL setup",
         title: "Database Error",
       );
     }
@@ -189,6 +189,7 @@ class HomeController extends GetxController {
       searchData.value = addData;
       await updateSharedPreference(); // Keep local storage in sync
       _syncReminders();
+      _scheduleSummaryNotifications();
       debugPrint("Data loaded from Supabase. Count: ${supabaseTasks.length}");
     } else {
       // Only fallback to SharedPreferences if we are truly offline/logged out
@@ -265,7 +266,7 @@ class HomeController extends GetxController {
           // Call scheduleTaskReminder and let it handle the grace period for past times
           _notificationService.scheduleTaskReminder(
             id: task['id'].toString().hashCode,
-            title: "Task Reminder: ${task['title']}",
+            title: task['title'],
             body: task['description'] ?? '',
             scheduledTime: reminderTime,
           );
@@ -310,7 +311,7 @@ class HomeController extends GetxController {
       await _notificationService.cancelNotification(taskId.hashCode);
       await _notificationService.scheduleTaskReminder(
         id: taskId.hashCode,
-        title: "Updated Task: $newTitle",
+        title: newTitle,
         body: newDescription,
         scheduledTime: reminderTime.value!,
       );
