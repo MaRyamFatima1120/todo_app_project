@@ -117,6 +117,10 @@ class HomeController extends GetxController {
           await updateSharedPreference();
           _scheduleDailyDigest();
           clearFormField(); // Now clear the form
+          
+          // Show success snackbar
+          CustomSnackBar.success("Task has been saved and synced.");
+          
           debugPrint("Task synced successfully with Supabase and notification scheduled");
         }
       } catch (e) {
@@ -151,6 +155,15 @@ class HomeController extends GetxController {
       onChangedFunction(searchQuery.value);
       taskSearchData.value = getFilteredTasks();
       update();
+
+      // 1.5 Cancel notification if completed
+      if (newStatus) {
+        _notificationService.cancelNotification(taskId.toString().hashCode);
+        debugPrint("Cancelled notification for completed task: $taskId");
+      } else {
+        // If un-completed, re-sync reminders to schedule it back if time is in future
+        _syncReminders();
+      }
 
       // 2. Update Supabase
       await _supabaseService
@@ -231,6 +244,10 @@ class HomeController extends GetxController {
     
     _scheduleSummaryNotifications();
     update();
+    
+    // Show success snackbar
+    CustomSnackBar.success("Task deleted successfully");
+
     debugPrint("Deleted task $taskId and synced local storage.");
   }
 
@@ -249,6 +266,7 @@ class HomeController extends GetxController {
 
   void _startRealtimeListener() {
     _taskSubscription = _supabaseService.getTasksStream().listen((tasks) {
+      // Ensure we don't duplicate tasks or resurrect deleted ones immediately
       addData.value = tasks;
       searchData.value = List.from(tasks);
       onChangedFunction(searchQuery.value); // Keep search in sync
@@ -261,17 +279,21 @@ class HomeController extends GetxController {
 
   // Schedule notifications for all upcoming reminders in the task list
   void _syncReminders() {
+    final now = DateTime.now();
     for (var task in addData) {
       if (task['reminder_time'] != null && task['completed'] == false) {
         try {
           final reminderTime = DateTime.parse(task['reminder_time']).toLocal();
-          // Call scheduleTaskReminder and let it handle the grace period for past times
-          _notificationService.scheduleTaskReminder(
-            id: task['id'].toString().hashCode,
-            title: task['title'],
-            body: task['description'] ?? '',
-            scheduledTime: reminderTime,
-          );
+          
+          // Only schedule if it's in the future or very recently passed (handled by service)
+          if (reminderTime.isAfter(now.subtract(const Duration(minutes: 1)))) {
+            _notificationService.scheduleTaskReminder(
+              id: task['id'].toString().hashCode,
+              title: task['title'],
+              body: task['description'] ?? '',
+              scheduledTime: reminderTime,
+            );
+          }
         } catch (e) {
           debugPrint("Error parsing reminder time for task ${task['id']}: $e");
         }

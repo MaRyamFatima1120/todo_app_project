@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 
+import '../../../common/constants/app_color.dart';
 import '../../../common/utils/global_variable.dart';
 import '../../../common/utils/validation.dart';
 import '../../../common/widgets/custom_button.dart';
@@ -100,6 +101,41 @@ class _ViewPageState extends State<ViewPage> {
                         TimeOfDay? pickedTime = await showTimePicker(
                           context: context,
                           initialTime: TimeOfDay.now(),
+                          builder: (BuildContext context, Widget? child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: const ColorScheme.light(
+                                  primary: AppColor.blueColor,
+                                  onPrimary: Colors.white,
+                                  onSurface: Colors.black,
+                                  secondary: AppColor.blueColor,
+                                ),
+                                timePickerTheme: TimePickerThemeData(
+                                  backgroundColor: Colors.white,
+                                  hourMinuteTextColor: Colors.black,
+                                  hourMinuteColor: Colors.grey[200],
+                                  dayPeriodColor: WidgetStateColor.resolveWith((states) => 
+                                    states.contains(WidgetState.selected) ? AppColor.blueColor : Colors.white),
+                                  dayPeriodTextColor: WidgetStateColor.resolveWith((states) => 
+                                    states.contains(WidgetState.selected) ? Colors.white : AppColor.blueColor),
+                                  dayPeriodBorderSide: const BorderSide(color: AppColor.blueColor),
+                                  dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                  dialHandColor: AppColor.blueColor,
+                                  dialTextColor: Colors.black,
+                                ),
+                                textButtonTheme: TextButtonThemeData(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AppColor.blueColor,
+                                  ),
+                                ),
+                              ),
+                              child: MediaQuery(
+                                data: MediaQuery.of(context).copyWith(
+                                    alwaysUse24HourFormat: false),
+                                child: child!,
+                              ),
+                            );
+                          },
                         );
                         if (pickedTime != null) {
                           DateTime now = DateTime.now();
@@ -269,28 +305,36 @@ class _ViewPageState extends State<ViewPage> {
 
 
         actions: [
-          Obx(()=>
-             IconButton(
+          Obx(() {
+            final task = controller.addData.firstWhereOrNull((t) => t['id'].toString() == taskId.toString());
+            if (task == null) return const SizedBox.shrink();
+            return IconButton(
               onPressed: () {
-                controller.toggleTaskCompletion(controller.addData[index]['id']);
+                controller.toggleTaskCompletion(task['id']);
               },
               icon: Icon(
-                controller.addData[index]['completed'] ? Icons.check_circle : Icons.circle_outlined,
+                task['completed'] ? Icons.check_circle : Icons.circle_outlined,
                 color: Colors.white
               ),
-            ),
-          ),
+            );
+          }),
 
           //edit Button
           IconButton(
               onPressed: () {
-                _openEditDialog(context, index);
+                final currentIdx = controller.addData.indexWhere((t) => t['id'].toString() == taskId.toString());
+                if (currentIdx != -1) {
+                  _openEditDialog(context, currentIdx);
+                }
               },
               icon: const Icon(Icons.edit)),
 
           IconButton(
               onPressed: () {
-                _deleteDialog(context, index);
+                final currentIdx = controller.addData.indexWhere((t) => t['id'].toString() == taskId.toString());
+                if (currentIdx != -1) {
+                   _deleteDialog(context, currentIdx);
+                }
               },
               icon: const Icon(
                 Icons.delete,
@@ -298,87 +342,90 @@ class _ViewPageState extends State<ViewPage> {
         ],
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Flex(
-        direction: Axis.vertical,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      body: Obx(() {
+        final task = controller.addData.firstWhereOrNull((t) => t['id'].toString() == taskId.toString());
+        if (task == null) {
+          return const Center(child: CircularProgressIndicator(color: Colors.white));
+        }
+        
+        return Flex(
+          direction: Axis.vertical,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
 
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      title.toUpperCase(),
-                      style: textTheme(context).bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        task['title'].toString().toUpperCase(),
+                        style: textTheme(context).bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    Container(
-                      padding:const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
-                      width: 0.25.sw,
-                      height: 0.035.sh,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(5.0.r),
-                        color: Colors.white,
-                      ),
-                      child: Obx(()=>
-                          Center(
-                            child: Text(
-                              controller.addData[index]['completed'] == true
-                                  ? "Completed"
-                                  : "Pending",
-                              style: textTheme(context).titleSmall?.copyWith(
-                                color: backgroundColor
-                              )
-
-
-                            ),
+                      Container(
+                        padding:const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
+                        width: 0.25.sw,
+                        height: 0.035.sh,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(5.0.r),
+                          color: Colors.white,
+                        ),
+                        child: Center(
+                          child: Text(
+                            task['completed'] == true
+                                ? "Completed"
+                                : "Pending",
+                            style: textTheme(context).titleSmall?.copyWith(
+                              color: backgroundColor
+                            )
                           ),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Obx(() => Text(
-                  controller.addData[index]['reminder_time'] != null
-                      ? "Reminder: ${controller.formatDate(controller.addData[index]['reminder_time'])}"
-                      : controller.formatDate(time),
-                  style: textTheme(context).titleSmall?.copyWith(
-                        color: colorScheme(context).onPrimary,
-                        fontWeight: controller.addData[index]['reminder_time'] != null
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                )),
-              ],
+                    ],
+                  ),
+                  Text(
+                    task['reminder_time'] != null
+                        ? "Reminder: ${controller.formatDate(task['reminder_time'])}"
+                        : controller.formatDate(task['timeStamp']),
+                    style: textTheme(context).titleSmall?.copyWith(
+                          color: colorScheme(context).onPrimary,
+                          fontWeight: task['reminder_time'] != null
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Container(
-              padding: const EdgeInsets.all(40.0),
-              width: 1.sw,
-              decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(30.0),
-                      topLeft: Radius.circular(30.0))),
-              child: SingleChildScrollView(
-                child: Text(
-                  description,
-                  style: textTheme(context).bodySmall,
-                  textAlign: TextAlign.justify,
+            Expanded(
+              flex: 5,
+              child: Container(
+                padding: const EdgeInsets.all(40.0),
+                width: 1.sw,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(30.0),
+                        topLeft: Radius.circular(30.0))),
+                child: SingleChildScrollView(
+                  child: Text(
+                    task['description'] ?? '',
+                    style: textTheme(context).bodySmall,
+                    textAlign: TextAlign.justify,
+                  ),
                 ),
               ),
             ),
-          ),
 
-        ],
-      ),
+          ],
+        );
+      }),
     );
   }
 }

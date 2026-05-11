@@ -119,6 +119,43 @@ class _MainPageState extends State<MainPage> {
                               TimeOfDay? pickedTime = await showTimePicker(
                                 context: context,
                                 initialTime: TimeOfDay.now(),
+                                builder: (BuildContext context, Widget? child) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      colorScheme: const ColorScheme.light(
+                                        primary: AppColor.blueColor, // Main elements
+                                        onPrimary: Colors.white,
+                                        onSurface: Colors.black,
+                                        secondary: AppColor.blueColor, // Selection logic
+                                        tertiary: AppColor.blueColor,
+                                      ),
+                                      timePickerTheme: TimePickerThemeData(
+                                        backgroundColor: Colors.white,
+                                        hourMinuteTextColor: Colors.black,
+                                        hourMinuteColor: Colors.grey[200],
+                                        dayPeriodColor: WidgetStateColor.resolveWith((states) => 
+                                          states.contains(WidgetState.selected) ? AppColor.blueColor : Colors.white),
+                                        dayPeriodTextColor: WidgetStateColor.resolveWith((states) => 
+                                          states.contains(WidgetState.selected) ? Colors.white : AppColor.blueColor),
+                                        dayPeriodBorderSide: const BorderSide(color: AppColor.blueColor),
+                                        dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                        dialHandColor: AppColor.blueColor,
+                                        dialBackgroundColor: Colors.grey[100],
+                                        dialTextColor: Colors.black,
+                                      ),
+                                      textButtonTheme: TextButtonThemeData(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: AppColor.blueColor,
+                                        ),
+                                      ),
+                                    ),
+                                    child: MediaQuery(
+                                      data: MediaQuery.of(context).copyWith(
+                                          alwaysUse24HourFormat: false),
+                                      child: child!,
+                                    ),
+                                  );
+                                },
                               );
                               if (pickedTime != null) {
                                 DateTime now = DateTime.now();

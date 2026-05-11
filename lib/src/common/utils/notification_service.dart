@@ -261,43 +261,36 @@ class NotificationService {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     
     // Convert input DateTime to TZDateTime correctly
-    tz.TZDateTime tzScheduledTime;
-    if (scheduledTime.isUtc) {
-      tzScheduledTime = tz.TZDateTime.from(scheduledTime, tz.local);
-    } else {
-      tzScheduledTime = tz.TZDateTime(
-        tz.local,
-        scheduledTime.year,
-        scheduledTime.month,
-        scheduledTime.day,
-        scheduledTime.hour,
-        scheduledTime.minute,
-        scheduledTime.second,
-      );
-    }
+    // We convert to local first to ensure we are working with the phone's current context
+    final tz.TZDateTime tzScheduledTime = tz.TZDateTime.from(scheduledTime.toLocal(), tz.local);
 
-    // SMART LOGIC: If the time has already passed for today, move it to tomorrow
-    if (tzScheduledTime.isBefore(now) && now.difference(tzScheduledTime).inMinutes > 10) {
-       debugPrint("Scheduled time $tzScheduledTime has already passed. Moving to tomorrow.");
-       tzScheduledTime = tzScheduledTime.add(const Duration(days: 1));
-    }
-    
     // Ensure ID is a positive 32-bit integer
     final int safeId = id.abs() % 2147483647;
 
-    debugPrint("SafeID: $safeId | Final Target: $tzScheduledTime (Now: $now)");
+    debugPrint("Scheduling: $formattedTitle | SafeID: $safeId | Time: $tzScheduledTime");
 
-    // Final check: if it's still in the past (should only happen if < 10 mins ago)
+    // PROFESSIONAL LOGIC: 
+    // 1. If the time is in the past, don't move it to tomorrow (that's confusing for tasks).
+    // 2. If it was missed by a very short margin (e.g., 1 minute) while app was syncing, show it now.
+    // 3. Otherwise, just ignore it as it is now an "overdue" task.
+    
     if (tzScheduledTime.isBefore(now)) {
-      if (now.difference(tzScheduledTime).inMinutes < 10) {
+      final int minutesPast = now.difference(tzScheduledTime).inMinutes;
+      
+      if (minutesPast <= 1) {
+        debugPrint("Reminder missed by $minutesPast minute(s). Showing instant notification instead.");
         await showInstantNotification(
           id: safeId,
           title: formattedTitle,
           body: formattedBody,
         );
+      } else {
+        debugPrint("Reminder for '$title' is overdue by $minutesPast minutes. Skipping schedule.");
       }
       return;
     }
+
+    debugPrint("Scheduling future notification: $formattedTitle for $tzScheduledTime");
 
     await _notificationsPlugin.zonedSchedule(
       id: safeId,
