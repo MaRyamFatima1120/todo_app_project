@@ -48,188 +48,197 @@ class _MainPageState extends State<MainPage> {
             onPressed: () {
               Get.bottomSheet(
                   Container(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: EdgeInsets.only(
+                      top: 16.h,
+                      left: 16.w,
+                      right: 16.w,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 16.h,
+                    ),
                     width: 1.sw,
-                    height: 0.5.sh,
                     decoration: const BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(20),
                           topRight: Radius.circular(20),
                         )),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "Add Task ",
-                                style: textTheme(context).bodyMedium?.copyWith(
-                                    color: colorScheme(context).onSecondary),
-                              ),
-                              SizedBox(
-                                width: 0.25.sw,
-                              ),
-                              IconButton(
-                                  onPressed: () {
-                                    Get.back();
-                                  },
-                                  icon: Icon(
-                                    Icons.close,
-                                    size: 20.sp,
-                                    color: Colors.black,
-                                  )),
-                            ],
-                          ),
-                          CustomTextFormField(
-                            labelText: "title",
-                            keyboard: TextInputType.text,
-                            controller: titleController,
-                            validator: validateData,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          CustomTextFormField(
-                            labelText: "Write Something Here...",
-                            maxLines: 4,
-                            keyboard: TextInputType.text,
-                            controller: descriptionController,
-                            validator: validateData,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (value) {
-                              if (_formKey.currentState!.validate()) {
-                                homeController.title.value =
-                                    titleController.text;
-                                homeController.description.value =
-                                    descriptionController.text;
-                                homeController.saveData().then((_) {
-                                  titleController.clear();
-                                  descriptionController.clear();
-                                });
-                                Get.back();
-                              }
-                            },
-                          ),
-                          GestureDetector(
-                            onTap: () async {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.now(),
-                                builder: (BuildContext context, Widget? child) {
-                                  return Theme(
-                                    data: Theme.of(context).copyWith(
-                                      colorScheme: const ColorScheme.light(
-                                        primary: AppColor.blueColor, // Main elements
-                                        onPrimary: Colors.white,
-                                        onSurface: Colors.black,
-                                        secondary: AppColor.blueColor, // Selection logic
-                                        tertiary: AppColor.blueColor,
-                                      ),
-                                      timePickerTheme: TimePickerThemeData(
-                                        backgroundColor: Colors.white,
-                                        hourMinuteTextColor: Colors.black,
-                                        hourMinuteColor: Colors.grey[200],
-                                        dayPeriodColor: WidgetStateColor.resolveWith((states) => 
-                                          states.contains(WidgetState.selected) ? AppColor.blueColor : Colors.white),
-                                        dayPeriodTextColor: WidgetStateColor.resolveWith((states) => 
-                                          states.contains(WidgetState.selected) ? Colors.white : AppColor.blueColor),
-                                        dayPeriodBorderSide: const BorderSide(color: AppColor.blueColor),
-                                        dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
-                                        dialHandColor: AppColor.blueColor,
-                                        dialBackgroundColor: Colors.grey[100],
-                                        dialTextColor: Colors.black,
-                                      ),
-                                      textButtonTheme: TextButtonThemeData(
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: AppColor.blueColor,
+                    child: SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "Add Task ",
+                                  style: textTheme(context).bodyMedium?.copyWith(
+                                      color: colorScheme(context).onSecondary),
+                                ),
+                                SizedBox(
+                                  width: 0.25.sw,
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      Get.back();
+                                    },
+                                    icon: Icon(
+                                      Icons.close,
+                                      size: 20.sp,
+                                      color: Colors.black,
+                                    )),
+                              ],
+                            ),
+                            SizedBox(height: 16.h),
+                            CustomTextFormField(
+                              labelText: "title",
+                              keyboard: TextInputType.text,
+                              controller: titleController,
+                              validator: validateData,
+                              textInputAction: TextInputAction.next,
+                            ),
+                            SizedBox(height: 16.h),
+                            CustomTextFormField(
+                              labelText: "Write Something Here...",
+                              maxLines: 4,
+                              keyboard: TextInputType.text,
+                              controller: descriptionController,
+                              validator: validateData,
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (value) {
+                                if (_formKey.currentState!.validate()) {
+                                  homeController.title.value =
+                                      titleController.text;
+                                  homeController.description.value =
+                                      descriptionController.text;
+                                  homeController.saveData().then((_) {
+                                    titleController.clear();
+                                    descriptionController.clear();
+                                  });
+                                  Get.back();
+                                }
+                              },
+                            ),
+                            SizedBox(height: 16.h),
+                            GestureDetector(
+                              onTap: () async {
+                                TimeOfDay? pickedTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                  builder: (BuildContext context, Widget? child) {
+                                    return Theme(
+                                      data: Theme.of(context).copyWith(
+                                        colorScheme: const ColorScheme.light(
+                                          primary: AppColor.blueColor, // Main elements
+                                          onPrimary: Colors.white,
+                                          onSurface: Colors.black,
+                                          secondary: AppColor.blueColor, // Selection logic
+                                          tertiary: AppColor.blueColor,
+                                        ),
+                                        timePickerTheme: TimePickerThemeData(
+                                          backgroundColor: Colors.white,
+                                          hourMinuteTextColor: Colors.black,
+                                          hourMinuteColor: Colors.grey[200],
+                                          dayPeriodColor: WidgetStateColor.resolveWith((states) => 
+                                            states.contains(WidgetState.selected) ? AppColor.blueColor : Colors.white),
+                                          dayPeriodTextColor: WidgetStateColor.resolveWith((states) => 
+                                            states.contains(WidgetState.selected) ? Colors.white : AppColor.blueColor),
+                                          dayPeriodBorderSide: const BorderSide(color: AppColor.blueColor),
+                                          dayPeriodShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                          dialHandColor: AppColor.blueColor,
+                                          dialBackgroundColor: Colors.grey[100],
+                                          dialTextColor: Colors.black,
+                                        ),
+                                        textButtonTheme: TextButtonThemeData(
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColor.blueColor,
+                                          ),
                                         ),
                                       ),
+                                      child: MediaQuery(
+                                        data: MediaQuery.of(context).copyWith(
+                                            alwaysUse24HourFormat: false),
+                                        child: child!,
+                                      ),
+                                    );
+                                  },
+                                );
+                                if (pickedTime != null) {
+                                  DateTime now = DateTime.now();
+                                  homeController.reminderTime.value = DateTime(
+                                      now.year,
+                                      now.month,
+                                      now.day,
+                                      pickedTime.hour,
+                                      pickedTime.minute);
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16.w, vertical: 12.h),
+                                decoration: BoxDecoration(
+                                  color: colorScheme(context)
+                                      .primary
+                                      .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(
+                                      color: colorScheme(context)
+                                          .primary
+                                          .withValues(alpha: 0.3)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.alarm_rounded,
+                                        color: colorScheme(context).primary,
+                                        size: 20.sp),
+                                    SizedBox(width: 12.w),
+                                    Expanded(
+                                      child: Obx(() => Text(
+                                            homeController.reminderTime.value ==
+                                                    null
+                                                ? "Set Reminder"
+                                                : "Reminder Set: ${DateFormat.jm().format(homeController.reminderTime.value!)}",
+                                            style: textTheme(context)
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: Colors.grey[600],
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                          )),
                                     ),
-                                    child: MediaQuery(
-                                      data: MediaQuery.of(context).copyWith(
-                                          alwaysUse24HourFormat: false),
-                                      child: child!,
-                                    ),
-                                  );
-                                },
-                              );
-                              if (pickedTime != null) {
-                                DateTime now = DateTime.now();
-                                homeController.reminderTime.value = DateTime(
-                                    now.year,
-                                    now.month,
-                                    now.day,
-                                    pickedTime.hour,
-                                    pickedTime.minute);
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16.w, vertical: 12.h),
-                              decoration: BoxDecoration(
-                                color: colorScheme(context)
-                                    .primary
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12.r),
-                                border: Border.all(
-                                    color: colorScheme(context)
-                                        .primary
-                                        .withValues(alpha: 0.3)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.alarm_rounded,
-                                      color: colorScheme(context).primary,
-                                      size: 20.sp),
-                                  SizedBox(width: 12.w),
-                                  Expanded(
-                                    child: Obx(() => Text(
-                                          homeController.reminderTime.value ==
-                                                  null
-                                              ? "Set Reminder"
-                                              : "Reminder Set: ${DateFormat.jm().format(homeController.reminderTime.value!)}",
-                                          style: textTheme(context)
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: Colors.grey[600],
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                        )),
-                                  ),
-                                  Icon(Icons.arrow_forward_ios_rounded,
-                                      size: 14.sp,
-                                      color: colorScheme(context).primary),
-                                ],
+                                    Icon(Icons.arrow_forward_ios_rounded,
+                                        size: 14.sp,
+                                        color: colorScheme(context).primary),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: 10.h),
-                          CustomButton(
-                            pressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                homeController.title.value =
-                                    titleController.text;
-                                homeController.description.value =
-                                    descriptionController.text;
-                                homeController.saveData().then((_) {
-                                  titleController.clear();
-                                  descriptionController.clear();
-                                });
-                                Get.back();
-                              }
-                            },
-                            bgColor: colorScheme(context).primary,
-                            width: 1.sw,
-                            child: Text(
-                              "Add",
-                              style: textTheme(context).bodyMedium,
+                            SizedBox(height: 16.h),
+                            CustomButton(
+                              pressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  homeController.title.value =
+                                      titleController.text;
+                                  homeController.description.value =
+                                      descriptionController.text;
+                                  homeController.saveData().then((_) {
+                                    titleController.clear();
+                                    descriptionController.clear();
+                                  });
+                                  Get.back();
+                                }
+                              },
+                              bgColor: colorScheme(context).primary,
+                              width: 1.sw,
+                              child: Text(
+                                "Add",
+                                style: textTheme(context).bodyMedium,
+                              ),
                             ),
-                          )
-                        ],
+                            SizedBox(height: 16.h),
+                          ],
+                        ),
                       ),
                     ),
                   ),

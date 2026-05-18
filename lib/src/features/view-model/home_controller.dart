@@ -78,9 +78,9 @@ class HomeController extends GetxController {
       final DateTime? scheduledReminder = reminderTime.value;
 
       // 2. Instant UI Update (Add to local list immediately)
-      addData.insert(0, newTask); 
+      addData.insert(0, newTask);
       searchData.value = List.from(addData);
-      onChangedFunction(searchQuery.value); 
+      onChangedFunction(searchQuery.value);
 
       try {
         // 2. Background Sync to Supabase
@@ -117,11 +117,12 @@ class HomeController extends GetxController {
           await updateSharedPreference();
           _scheduleDailyDigest();
           clearFormField(); // Now clear the form
-          
+
           // Show success snackbar
-          CustomSnackBar.success("Task has been saved and synced.");
-          
-          debugPrint("Task synced successfully with Supabase and notification scheduled");
+          CustomSnackBar.success("Task has been saved.");
+
+          debugPrint(
+              "Task synced successfully with Supabase and notification scheduled");
         }
       } catch (e) {
         debugPrint("Error syncing task: $e");
@@ -176,8 +177,7 @@ class HomeController extends GetxController {
       // Achievement: If all tasks are completed
       if (newStatus && getTasksByFilter('pending').isEmpty) {
         _notificationService.showAchievementNotification(
-          "Amazing! You've completed all your tasks for today"
-        );
+            "Amazing! You've completed your task for today");
       }
 
       debugPrint("Successfully toggled task: $taskId to $newStatus");
@@ -238,13 +238,13 @@ class HomeController extends GetxController {
     addData.removeAt(index);
     searchData.value = List.from(addData);
     taskSearchData.value = getFilteredTasks();
-    
+
     // Sync to local storage
     await updateSharedPreference();
-    
+
     _scheduleSummaryNotifications();
     update();
-    
+
     // Show success snackbar
     CustomSnackBar.success("Task deleted successfully");
 
@@ -284,7 +284,7 @@ class HomeController extends GetxController {
       if (task['reminder_time'] != null && task['completed'] == false) {
         try {
           final reminderTime = DateTime.parse(task['reminder_time']).toLocal();
-          
+
           // Only schedule if it's in the future or very recently passed (handled by service)
           if (reminderTime.isAfter(now.subtract(const Duration(minutes: 1)))) {
             _notificationService.scheduleTaskReminder(
@@ -304,7 +304,7 @@ class HomeController extends GetxController {
   void _scheduleSummaryNotifications() {
     int pendingCount = getTasksByFilter('pending').length;
     int completedCount = getTasksByFilter('completed').length;
-    
+
     _notificationService.scheduleDailyDigest(pendingCount);
     _notificationService.scheduleEveningWrapUp(completedCount, pendingCount);
     _notificationService.scheduleInactivityNudge();
@@ -345,7 +345,8 @@ class HomeController extends GetxController {
     addData[index]['title'] = newTitle;
     addData[index]['description'] = newDescription;
     addData[index]['timeStamp'] = timeStamp;
-    addData[index]['reminder_time'] = reminderTime.value?.toUtc().toIso8601String();
+    addData[index]['reminder_time'] =
+        reminderTime.value?.toUtc().toIso8601String();
     addData.refresh();
     updateSharedPreference();
     clearFormField();

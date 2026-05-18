@@ -369,22 +369,19 @@ class _ViewPageState extends State<ViewPage> {
                         ),
                       ),
                       Container(
-                        padding:const EdgeInsets.symmetric(horizontal: 10.0,vertical: 5.0),
-                        width: 0.25.sw,
-                        height: 0.035.sh,
+                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(5.0.r),
+                          borderRadius: BorderRadius.circular(8.r),
                           color: Colors.white,
                         ),
-                        child: Center(
-                          child: Text(
-                            task['completed'] == true
-                                ? "Completed"
-                                : "Pending",
-                            style: textTheme(context).titleSmall?.copyWith(
-                              color: backgroundColor
-                            )
-                          ),
+                        child: Text(
+                          task['completed'] == true
+                              ? "Completed"
+                              : "Pending",
+                          style: textTheme(context).titleSmall?.copyWith(
+                            color: backgroundColor,
+                            fontWeight: FontWeight.bold,
+                          )
                         ),
                       ),
                     ],
